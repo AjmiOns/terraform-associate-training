@@ -15,7 +15,7 @@ Study notes, quizzes and hands-on labs while preparing for the HashiCorp Terrafo
 
 | # | Chapter | Notes | Quiz | Lab | Done |
 |---|---|---|---|---|---|
-| 01 | Intro to IaC and first deployment | ✅ | ⬜ | ⬜ | ⬜ |
+| 01 | Intro to IaC and first deployment | ✅ | ✅ | ✅ | ✅ |
 | 02 | _to be added_ | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Rules
