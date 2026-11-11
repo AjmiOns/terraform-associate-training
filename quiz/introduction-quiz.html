@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 01 Quiz – IaC & Terraform</title>
+<style>
+:root{
+  --bg:#f6f5fa; --surface:#ffffff; --ink:#1d1a2b; --muted:#5f5a75; --line:#d9d5e8;
+  --brand:#5c4ee5; --brand-ink:#ffffff; --ok:#17794a; --ok-bg:#e1f5ea; --bad:#b42336; --bad-bg:#fbe5e8;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#14121f; --surface:#1e1b2e; --ink:#ece9f8; --muted:#a29cbd; --line:#3a3552;
+  --brand:#8b7fff; --brand-ink:#14121f; --ok:#5fd397; --ok-bg:#16302447; --bad:#ff8696; --bad-bg:#40181f66; color-scheme:dark;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:1.6rem;line-height:1.2;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 24px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .25s}
+.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:.9rem;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px}
+.q{font-size:1.15rem;font-weight:600;margin:0 0 16px}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;font:.9rem/1.5 ui-monospace,Consolas,monospace;margin:0 0 16px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.92em;background:var(--bg);padding:1px 5px;border-radius:4px}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;font:inherit;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt:focus-visible,.btn:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:8px;border-left:5px solid}
+.fb.ok{border-color:var(--ok);background:var(--ok-bg)}
+.fb.bad{border-color:var(--bad);background:var(--bad-bg)}
+.fb strong{display:block;margin-bottom:4px}
+.btn{margin-top:18px;background:var(--brand);color:var(--brand-ink);border:0;border-radius:8px;padding:11px 20px;font:inherit;font-weight:600;cursor:pointer}
+.score{font-size:2.4rem;font-weight:700;margin:0}
+ul.miss{padding-left:20px}
+.hidden{display:none}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Chapter 01 – Infrastructure as Code &amp; Terraform</h1>
+  <p class="sub">Pick an answer to see right away whether it is correct and why.</p>
+  <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+  <div class="meta"><span id="count"></span><span id="score"></span></div>
+  <section class="card" id="quiz" aria-live="polite"></section>
+  <section class="card hidden" id="result"></section>
+</main>
+
+<script>
+const QUESTIONS = [
+{ q:"What is Infrastructure as Code (IaC)?",
+  o:["Writing application code that runs on servers","Defining and managing infrastructure using configuration files or code","A graphical console for creating cloud resources","A way to install software on virtual machines only"],
+  a:1, e:"IaC means describing the desired infrastructure in files; a tool then interprets them and performs the operations, instead of creating resources by hand." },
+{ q:"Which is NOT a benefit of IaC listed in the chapter?",
+  o:["Versioning with Git","Reviewing changes before applying them","Repeatability of environments","Guaranteed zero cost on the cloud"],
+  a:3, e:"The benefits are automation, repeatability, versioning, consistency, traceability and collaboration. IaC says nothing about cost being zero." },
+{ q:"Which approach does Terraform mainly use?",
+  o:["Imperative","Declarative","Procedural scripting only","Manual"],
+  a:1, e:"Terraform is mainly declarative: you describe the desired result and the tool works out the operations needed to reach it." },
+{ q:"“Create a network, then create a VM, then attach the VM to the network.” Which approach is this?",
+  o:["Declarative","Imperative","Hybrid","Event-driven"],
+  a:1, e:"Listing actions in a specific order is the imperative approach. A declarative description would say “I want a VM connected to a network”." },
+{ q:"Who develops Terraform?",
+  o:["Amazon Web Services","Microsoft","HashiCorp","Google"],
+  a:2, e:"Terraform is an IaC tool developed by HashiCorp. It works with AWS, Azure, GCP and others through providers." },
+{ q:"What is a Terraform provider?",
+  o:["A paid subscription plan","A plugin that lets Terraform interact with a platform or service","A file that stores the infrastructure state","A command that formats code"],
+  a:1, e:"A provider is a plugin that translates Terraform's work into API calls for a platform (AWS, Azure, Docker, Kubernetes…)." },
+{ q:"What is the difference between a resource and a data source?",
+  o:["There is none","A resource is created, modified or deleted by Terraform; a data source only reads info about something that already exists","A data source creates resources faster","A resource is read-only; a data source is writable"],
+  a:1, e:"Resources are managed by Terraform (e.g. aws_instance). Data sources read information about existing objects without necessarily creating them." },
+{ q:"Which language is used to write Terraform configurations?",
+  o:["YAML","JSON only","HCL (HashiCorp Configuration Language)","Python"],
+  a:2, e:"Terraform uses HCL in .tf files." },
+{ q:"In this block, what are the resource type, logical name and provider?",
+  code:'resource "aws_instance" "web" {\n  instance_type = "t3.micro"\n  ami           = "ami-xxxxxxxx"\n}',
+  o:["type: web, name: aws_instance, provider: t3.micro","type: aws_instance, name: web, provider: aws","type: resource, name: aws_instance, provider: web","type: aws_instance, name: ami, provider: hashicorp"],
+  a:1, e:"The first label is the resource type (aws_instance), the second is the logical name (web). The provider is deduced from the type prefix: aws." },
+{ q:"What does terraform init do?",
+  o:["Applies the changes","Initializes the working directory and downloads required providers into .terraform","Deletes all resources","Shows the plan"],
+  a:1, e:"init prepares the directory: it downloads the providers and creates the .terraform directory. It must be run first." },
+{ q:"Which is the correct order of the basic workflow?",
+  o:["apply → init → plan → destroy","init → fmt → validate → plan → apply → destroy","plan → init → apply → validate","validate → apply → init → plan"],
+  a:1, e:"init → fmt → validate → plan → apply, and destroy when you want to remove the managed resources." },
+{ q:"What is the difference between terraform plan and terraform apply?",
+  o:["plan creates resources, apply previews them","plan previews the changes; apply carries them out (after confirmation)","They are identical","plan formats files; apply validates them"],
+  a:1, e:"plan compares configuration, state and real infrastructure and shows what would change without changing anything. apply performs the changes, asking for confirmation by default." },
+{ q:"Does terraform validate guarantee the resources can be created on AWS?",
+  o:["Yes, it contacts AWS to test creation","Yes, if it prints “Success”","No, it only checks syntax and internal consistency","No, because it only works on Windows"],
+  a:2, e:"validate checks the syntactic and structural consistency of the configuration. It does not guarantee creation: permissions, quotas, invalid AMI IDs or region issues only appear at plan/apply." },
+{ q:"What is the role of terraform.tfstate?",
+  o:["It stores the cloud provider password","It records the managed resources and maps the configuration to real objects","It contains the provider plugins","It is a backup of the .tf files"],
+  a:1, e:"The State lets Terraform know what it manages and link each block of configuration to a real infrastructure object, so it can compute the changes." },
+{ q:"Why should the State file not be published in a public GitHub repo?",
+  o:["It is too large for Git","It can contain sensitive information (IDs, IPs, sometimes secrets in clear text) about your infrastructure","GitHub forbids .tfstate files","It would stop Terraform from working"],
+  a:1, e:"The State describes your real infrastructure and may expose sensitive values in plain text. Keep it out of public repos (use .gitignore, and a protected remote backend)." },
+{ q:"Why is it important to run terraform plan before terraform apply?",
+  o:["It is mandatory, apply fails without it","To review the proposed changes and catch mistakes (unwanted deletions, wrong target) before they affect real resources","It makes apply run faster","It downloads the providers"],
+  a:1, e:"plan gives traceability and safety: you see what will be created, changed or destroyed before anything happens. (Apply also shows a plan, but running plan first lets you review it deliberately.)" },
+{ q:"What should you do before confirming terraform destroy?",
+  o:["Nothing, it is always safe","Check the plan and the targeted environment, because real cloud resources will be deleted","Run terraform fmt","Run terraform init again"],
+  a:1, e:"destroy really deletes cloud resources, so verify what is targeted and in which environment." },
+{ q:"In the provider.tf of the chapter, what does profile = \"terraform-lab\" do?",
+  o:["Names the Terraform project","Tells the AWS provider to use the credentials of the AWS CLI profile terraform-lab","Selects the instance type","Sets the Terraform version"],
+  a:1, e:"The profile argument points to the AWS CLI profile created with aws configure --profile terraform-lab, which holds the access keys, region and output format." },
+{ q:"Which command verifies the identity associated with your AWS profile?",
+  o:["aws configure list","aws sts get-caller-identity --profile terraform-lab","terraform validate","terraform fmt"],
+  a:1, e:"aws sts get-caller-identity returns the account and identity behind the profile. aws configure list only shows the stored configuration." },
+{ q:"“terraform” is not recognized in PowerShell. What is the fix suggested in the chapter?",
+  o:["Reinstall Windows","Add the Terraform folder to the Path (permanently, or for the session with $env:Path += \";<folder>\")","Run terraform init","Install Docker"],
+  a:1, e:"The folder containing terraform.exe must be in the Path environment variable; for the current session use $env:Path += \";C:\\...\\terraform_folder\"." }
+];
+
+const $ = id => document.getElementById(id);
+let i = 0, score = 0, missed = [];
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function render(){
+  const Q = QUESTIONS[i];
+  $("prog").style.width = (i / QUESTIONS.length * 100) + "%";
+  $("count").textContent = "Question " + (i+1) + " of " + QUESTIONS.length;
+  $("score").textContent = "Score: " + score;
+  let h = '<p class="q">' + esc(Q.q) + '</p>';
+  if (Q.code) h += '<pre>' + esc(Q.code) + '</pre>';
+  Q.o.forEach((t,k)=>{ h += '<button class="opt" data-k="'+k+'">' + esc(t) + '</button>'; });
+  h += '<div id="fb"></div><button class="btn hidden" id="next"></button>';
+  $("quiz").innerHTML = h;
+  document.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.k));
+}
+
+function answer(k){
+  const Q = QUESTIONS[i], good = k === Q.a;
+  document.querySelectorAll(".opt").forEach((b,n)=>{
+    b.disabled = true;
+    if (n === Q.a) b.classList.add("ok");
+    else if (n === k) b.classList.add("bad");
+  });
+  if (good) score++; else missed.push(i);
+  $("score").textContent = "Score: " + score;
+  $("fb").innerHTML = '<div class="fb ' + (good?'ok':'bad') + '"><strong>' +
+    (good ? "✔ Correct" : "✘ Incorrect – the right answer is: " + esc(Q.o[Q.a])) +
+    '</strong>' + esc(Q.e) + '</div>';
+  const n = $("next");
+  n.textContent = i === QUESTIONS.length-1 ? "See results" : "Next question";
+  n.classList.remove("hidden");
+  n.onclick = () => { i++; i < QUESTIONS.length ? render() : finish(); };
+  n.focus();
+}
+
+function finish(){
+  $("prog").style.width = "100%";
+  $("quiz").classList.add("hidden");
+  const r = $("result"); r.classList.remove("hidden");
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  let h = '<p class="score">' + score + ' / ' + QUESTIONS.length + ' (' + pct + '%)</p>';
+  h += '<p>' + (pct>=80 ? "Solid. You are ready for the lab." : pct>=60 ? "Good start. Review the questions below." : "Re-read the chapter, then try again.") + '</p>';
+  if (missed.length){
+    h += '<p><strong>To review:</strong></p><ul class="miss">';
+    missed.forEach(m => h += '<li>' + esc(QUESTIONS[m].q) + '</li>');
+    h += '</ul>';
+  }
+  h += '<button class="btn" id="again">Restart</button>';
+  r.innerHTML = h;
+  $("again").onclick = () => { i=0; score=0; missed=[]; r.classList.add("hidden"); $("quiz").classList.remove("hidden"); render(); };
+}
+render();
+</script>
+</body>
+</html>
