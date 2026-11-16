@@ -17,3 +17,4 @@ override.tf.json
 # OS / editor
 .DS_Store
 .vscode/
+desktop.ini
