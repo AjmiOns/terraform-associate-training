@@ -16,7 +16,8 @@ Study notes, quizzes and hands-on labs while preparing for the HashiCorp Terrafo
 | # | Chapter | Notes | Quiz | Lab | Done |
 |---|---|---|---|---|---|
 | 01 | Intro to IaC and first deployment | ✅ | [Take Quiz](https://ajmions.github.io/terraform-associate-training/quiz/introduction-quiz.html) | ✅ | ✅ |
-| 02 | *To be added* | ⬜ | ⬜ | ⬜ | ⬜ |
+| 02 | Terraform workflow and resource management | ✅ | [Take Quiz](https://ajmions.github.io/terraform-associate-training/quiz/workflow-quiz.html) | ⬜ | ⬜ |
+| 03 | *To be added* | ⬜ | ⬜ | ⬜ | ⬜ |
 
 ## Rules
 

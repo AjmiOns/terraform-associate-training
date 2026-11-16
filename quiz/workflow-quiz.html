@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 02 Quiz: Terraform workflow and resource management</title>
+<style>
+  :root {
+    --bg: #f6f7fc;
+    --surface: #ffffff;
+    --ink: #232845;
+    --muted: #666c8c;
+    --line: #d9dcec;
+    --accent: #5b4bb8;
+    --accent-soft: #ebe7f8;
+    --ok: #1e7a4c;
+    --ok-soft: #e2f3e9;
+    --bad: #b3343f;
+    --bad-soft: #fbe7ea;
+    --code-bg: #eceefa;
+    --code-ink: #4a3a9c;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14172a;
+      --surface: #1d2140;
+      --ink: #e8eaf8;
+      --muted: #9aa0c4;
+      --line: #343a66;
+      --accent: #b7a8f2;
+      --accent-soft: #2d2a55;
+      --ok: #7fd5a4;
+      --ok-soft: #1b3a2c;
+      --bad: #f2a0a8;
+      --bad-soft: #43202a;
+      --code-bg: #2a2f58;
+      --code-ink: #cfc6fa;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14172a; --surface: #1d2140; --ink: #e8eaf8; --muted: #9aa0c4; --line: #343a66;
+    --accent: #b7a8f2; --accent-soft: #2d2a55; --ok: #7fd5a4; --ok-soft: #1b3a2c;
+    --bad: #f2a0a8; --bad-soft: #43202a; --code-bg: #2a2f58; --code-ink: #cfc6fa;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 28px 16px 56px;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+
+  header { margin-bottom: 22px; }
+  .course { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 0; }
+
+  .bar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 12px; margin: 22px 0 14px;
+  }
+  .modes { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+  .modes button {
+    border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 0.92rem;
+    padding: 8px 16px; cursor: pointer;
+  }
+  .modes button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  :root[data-theme="dark"] .modes button[aria-pressed="true"] { color: #14172a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .modes button[aria-pressed="true"] { color: #14172a; } }
+
+  .link-btn {
+    border: 0; background: none; color: var(--accent); font: inherit; font-size: 0.92rem;
+    cursor: pointer; padding: 6px 2px; text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  .progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .progress > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+  .count { color: var(--muted); font-size: 0.88rem; margin: 8px 0 16px; display: flex; justify-content: space-between; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px 22px;
+  }
+  .prompt { font-size: 1.12rem; line-height: 1.45; margin: 0 0 18px; font-weight: 600; }
+
+  code {
+    font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background: var(--code-bg); color: var(--code-ink); padding: 1px 6px; border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .options { display: grid; gap: 10px; }
+  .opt {
+    display: flex; gap: 12px; align-items: flex-start; text-align: left; width: 100%;
+    background: var(--surface); color: var(--ink); font: inherit;
+    border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer;
+  }
+  .opt:hover:not([disabled]) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt .key {
+    flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center;
+    font-size: 0.82rem; font-weight: 700; background: var(--accent-soft); color: var(--accent);
+  }
+  .opt .txt { padding-top: 2px; }
+  .opt[disabled] { cursor: default; }
+  .opt.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.correct .key { background: var(--ok); color: #fff; }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .opt.wrong .key { background: var(--bad); color: #fff; }
+  .opt.dim { opacity: 0.6; }
+
+  .hint { margin: 14px 0 0; color: var(--muted); font-size: 0.93rem; }
+  .feedback { margin-top: 18px; border-left: 4px solid var(--line); padding: 4px 0 4px 14px; }
+  .feedback.ok { border-color: var(--ok); }
+  .feedback.bad { border-color: var(--bad); }
+  .feedback strong { display: block; margin-bottom: 2px; }
+  .feedback.ok strong { color: var(--ok); }
+  .feedback.bad strong { color: var(--bad); }
+  .feedback p { margin: 0; }
+
+  .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; min-height: 42px; }
+  .primary {
+    border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 600;
+    padding: 10px 20px; border-radius: 10px; cursor: pointer;
+  }
+  :root[data-theme="dark"] .primary { color: #14172a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .primary { color: #14172a; } }
+  .secondary {
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: inherit;
+    padding: 9px 18px; border-radius: 10px; cursor: pointer;
+  }
+  .secondary:hover:not([disabled]) { border-color: var(--accent); }
+  .secondary[disabled] { opacity: .45; cursor: default; }
+
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* flashcards */
+  .flash {
+    width: 100%; min-height: 220px; text-align: left; font: inherit; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; cursor: pointer;
+  }
+  .flash .side { color: var(--muted); font-size: 0.85rem; margin: 0 0 12px; }
+  .flash .big { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; line-height: 1.45; }
+  .flash.back { background: var(--accent-soft); border-color: var(--accent); }
+  .flash .more { margin: 0; color: var(--ink); }
+
+  /* results */
+  .score { font-size: 2.4rem; font-weight: 700; margin: 0; line-height: 1.1; }
+  .verdict { color: var(--muted); margin: 6px 0 18px; }
+  .review { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 8px; }
+  .review li { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .review .mark { flex: none; width: 24px; height: 24px; border-radius: 99px; display: grid; place-items: center; font-weight: 700; font-size: 0.85rem; color: #fff; }
+  .review .mark.ok { background: var(--ok); }
+  .review .mark.bad { background: var(--bad); }
+  .review .q { margin: 0; font-size: 0.95rem; }
+  .review .a { margin: 2px 0 0; color: var(--muted); font-size: 0.88rem; }
+
+  footer { margin-top: 28px; color: var(--muted); font-size: 0.85rem; }
+
+  @media (prefers-reduced-motion: reduce) { .progress > span { transition: none; } }
+  @media (max-width: 480px) {
+    .card { padding: 20px 16px; }
+    code { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="course">Terraform Associate 004 · Chapter 02</p>
+    <h1>Terraform workflow and resource management</h1>
+    <p class="lede">Twelve questions on the core workflow, the lock file, reading a plan, resource vs data, and dependencies.</p>
+  </header>
+
+  <div class="bar">
+    <div class="modes" role="group" aria-label="Study mode">
+      <button type="button" id="modeQuiz" aria-pressed="true">Quiz</button>
+      <button type="button" id="modeFlash" aria-pressed="false">Flashcards</button>
+    </div>
+    <button type="button" class="link-btn" id="theme">Switch theme</button>
+  </div>
+
+  <div class="progress" aria-hidden="true"><span id="fill"></span></div>
+  <div class="count"><span id="counter"></span><span id="scoreLive"></span></div>
+
+  <section id="stage" aria-live="polite"></section>
+
+  <footer>Chapter 02 of my Terraform Associate preparation notes. Every question includes an explanation, so you can learn from the wrong answers too.</footer>
+</main>
+
+<script>
+"use strict";
+
+const QUESTIONS = [
+  {
+    q: "Which command downloads the providers and initializes the backend?",
+    options: ["`terraform validate`", "`terraform init`", "`terraform plan`", "`terraform fmt`"],
+    answer: 1,
+    hint: "It is the very first command to run in a new directory.",
+    why: "`terraform init` initializes the backend, downloads the providers, initializes the modules, and creates or updates the lock file."
+  },
+  {
+    q: "What does the `.terraform.lock.hcl` file contain?",
+    options: [
+      "The resources actually created in the cloud",
+      "The sensitive variables of the project",
+      "The selected provider versions and their checksums",
+      "The last saved plan"
+    ],
+    answer: 2,
+    why: "It pins provider versions and checksums, and it is generally committed with the code. The real resources are tracked by the State."
+  },
+  {
+    q: "Which `terraform init` option looks for newer allowed versions of providers and modules?",
+    options: ["`-upgrade`", "`-reconfigure`", "`-recursive`", "`-check`"],
+    answer: 0,
+    why: "`-upgrade` looks for newer allowed versions. `-reconfigure` concerns the backend, while `-recursive` and `-check` belong to `terraform fmt`."
+  },
+  {
+    q: "What does `terraform init -reconfigure` do?",
+    options: [
+      "Reconfigures the backend and automatically migrates the State",
+      "Reconfigures the backend without migrating the existing State",
+      "Deletes the lock file",
+      "Upgrades all providers"
+    ],
+    answer: 1,
+    why: "`-reconfigure` resets the backend configuration without migrating the existing State."
+  },
+  {
+    q: "`terraform validate` returns “Success”. What can you conclude?",
+    options: [
+      "The cloud provider will certainly accept all the resources",
+      "Running `terraform plan` is no longer necessary",
+      "The configuration is consistent in syntax and structure, with no guarantee on the provider side",
+      "The State is up to date"
+    ],
+    answer: 2,
+    hint: "validate stays shallow.",
+    why: "`validate` checks the consistency of the configuration. It does not guarantee that the resources can really be created, and it does not replace `plan`."
+  },
+  {
+    q: "Which command checks the formatting without modifying any file?",
+    options: ["`terraform fmt -check`", "`terraform fmt -recursive`", "`terraform validate`", "`terraform plan -check`"],
+    answer: 0,
+    why: "`fmt -check` verifies the formatting without changing anything. `-recursive` also formats the subdirectories."
+  },
+  {
+    q: "What does the `-/+` symbol mean in a plan?",
+    options: ["Modified in place", "Created before being destroyed", "Destroyed, then created again", "No change"],
+    answer: 2,
+    why: "`-/+` means destroy, then create again. `+/-` means create before destroy, when possible. `~` means modified in place."
+  },
+  {
+    q: "What does the `(known after apply)` mention indicate in a plan?",
+    options: [
+      "The value can only be determined once the plan has been applied",
+      "The resource will be deleted after apply",
+      "The plan contains an error",
+      "The value comes from the lock file"
+    ],
+    answer: 0,
+    why: "Some values, such as an identifier generated by the provider, can only be determined after the apply."
+  },
+  {
+    q: "How do you apply a plan saved with `terraform plan -out=tfplan`?",
+    options: [
+      "`terraform apply -out=tfplan`",
+      "`terraform apply tfplan`",
+      "`terraform init tfplan`",
+      "`terraform destroy tfplan`"
+    ],
+    answer: 1,
+    why: "`terraform apply tfplan` applies the saved plan directly."
+  },
+  {
+    q: "In `content = local_file.source.content`, what effect does this reference have for Terraform?",
+    options: [
+      "An explicit dependency, which must be declared with `depends_on`",
+      "An implicit dependency: `source` is created before `copy`",
+      "No dependency: the order is random",
+      "A read of existing data, like a `data` block"
+    ],
+    answer: 1,
+    why: "Referencing an attribute of another resource generally creates an implicit dependency, and Terraform builds its graph to determine the execution order."
+  },
+  {
+    q: "Which block reads information about an existing object without managing it?",
+    options: ["The `resource` block", "The `data` block", "The `terraform` block", "The `provider` block"],
+    answer: 1,
+    hint: "Think about “look up” versus “manage”.",
+    why: "A `data` block reads information about an existing object. A `resource` block declares an object that Terraform creates, modifies and deletes."
+  },
+  {
+    q: "What does `terraform apply -auto-approve` do?",
+    options: [
+      "Applies the changes without interactive confirmation",
+      "Applies a previously saved plan file",
+      "Skips the plan entirely and applies the configuration blindly",
+      "Destroys the resources that are no longer in the configuration"
+    ],
+    answer: 0,
+    why: "Terraform still computes the plan, but it does not ask for confirmation before applying. Use it with caution, especially in production."
+  }
+];
+
+const stage = document.getElementById("stage");
+const fill = document.getElementById("fill");
+const counter = document.getElementById("counter");
+const scoreLive = document.getElementById("scoreLive");
+const btnQuiz = document.getElementById("modeQuiz");
+const btnFlash = document.getElementById("modeFlash");
+
+let mode = "quiz";
+let order = [];      // shuffled option order per question
+let idx = 0;
+let results = [];    // {correct:boolean, picked:string}
+let answered = false;
+let flashIdx = 0;
+let flipped = false;
+
+function shuffle(a) {
+  const arr = a.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* Render text with `code` spans without ever using innerHTML. */
+function rich(parent, text) {
+  text.split("`").forEach((part, i) => {
+    if (!part) return;
+    if (i % 2 === 1) {
+      const c = document.createElement("code");
+      c.textContent = part;
+      parent.appendChild(c);
+    } else {
+      parent.appendChild(document.createTextNode(part));
+    }
+  });
+  return parent;
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text) e.textContent = text;
+  return e;
+}
+
+function startQuiz() {
+  idx = 0;
+  results = [];
+  answered = false;
+  order = QUESTIONS.map(q => shuffle(q.options.map((t, i) => ({ t, correct: i === q.answer }))));
+  renderQuestion();
+}
+
+function updateTop(current, total, live) {
+  fill.style.width = (total ? (current / total) * 100 : 0) + "%";
+  scoreLive.textContent = live || "";
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[idx];
+  const opts = order[idx];
+  stage.replaceChildren();
+  counter.textContent = "Question " + (idx + 1) + " of " + QUESTIONS.length;
+  const right = results.filter(r => r.correct).length;
+  updateTop(idx, QUESTIONS.length, results.length ? right + " correct so far" : "");
+
+  const card = el("div", "card");
+  const prompt = el("p", "prompt");
+  rich(prompt, q.q);
+  card.appendChild(prompt);
+
+  const list = el("div", "options");
+  list.setAttribute("role", "group");
+  list.setAttribute("aria-label", "Answer choices");
+  opts.forEach((o, i) => {
+    const b = el("button", "opt");
+    b.type = "button";
+    b.appendChild(el("span", "key", String.fromCharCode(65 + i)));
+    const t = el("span", "txt");
+    rich(t, o.t);
+    b.appendChild(t);
+    b.addEventListener("click", () => choose(i));
+    list.appendChild(b);
+  });
+  card.appendChild(list);
+
+  if (q.hint) {
+    const hintBtn = el("button", "link-btn", "Show hint");
+    hintBtn.type = "button";
+    const hintBox = el("p", "hint");
+    hintBox.hidden = true;
+    hintBox.textContent = q.hint;
+    hintBtn.addEventListener("click", () => {
+      hintBox.hidden = !hintBox.hidden;
+      hintBtn.textContent = hintBox.hidden ? "Show hint" : "Hide hint";
+    });
+    card.appendChild(hintBtn);
+    card.appendChild(hintBox);
+  }
+
+  const fb = el("div");
+  fb.id = "fb";
+  card.appendChild(fb);
+
+  const actions = el("div", "actions");
+  actions.id = "actions";
+  card.appendChild(actions);
+
+  stage.appendChild(card);
+  answered = false;
+}
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[idx];
+  const opts = order[idx];
+  const ok = opts[i].correct;
+  results.push({ correct: ok, picked: opts[i].t });
+
+  const buttons = stage.querySelectorAll(".opt");
+  buttons.forEach((b, n) => {
+    b.disabled = true;
+    if (opts[n].correct) b.classList.add("correct");
+    else if (n === i) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const fb = document.getElementById("fb");
+  const box = el("div", "feedback " + (ok ? "ok" : "bad"));
+  box.appendChild(el("strong", "", ok ? "That’s right." : "Not quite."));
+  const p = el("p");
+  rich(p, q.why);
+  box.appendChild(p);
+  fb.appendChild(box);
+
+  const actions = document.getElementById("actions");
+  actions.appendChild(el("span"));
+  const last = idx === QUESTIONS.length - 1;
+  const next = el("button", "primary", last ? "See my score" : "Next question");
+  next.type = "button";
+  next.addEventListener("click", advance);
+  actions.appendChild(next);
+  next.focus();
+
+  const right = results.filter(r => r.correct).length;
+  updateTop(idx + 1, QUESTIONS.length, right + " correct so far");
+}
+
+function advance() {
+  if (idx < QUESTIONS.length - 1) {
+    idx++;
+    renderQuestion();
+  } else {
+    renderResults();
+  }
+}
+
+function renderResults() {
+  stage.replaceChildren();
+  const right = results.filter(r => r.correct).length;
+  const total = QUESTIONS.length;
+  counter.textContent = "Finished";
+  updateTop(total, total, "");
+
+  const card = el("div", "card");
+  card.appendChild(el("p", "score", right + " / " + total));
+  const pct = right / total;
+  const msg = pct === 1 ? "A perfect score. The workflow is solid."
+    : pct >= 0.75 ? "Strong result. Review the explanations for the questions you missed."
+    : pct >= 0.5 ? "A decent start. Re-read the sections on the questions you missed, then try again."
+    : "Worth another pass through the chapter notes, then retake the quiz.";
+  card.appendChild(el("p", "verdict", msg));
+
+  const actions = el("div", "actions");
+  const again = el("button", "primary", "Retake the quiz");
+  again.type = "button";
+  again.addEventListener("click", startQuiz);
+  const missedOnly = results.some(r => !r.correct);
+  actions.appendChild(again);
+  if (missedOnly) {
+    const flash = el("button", "secondary", "Study as flashcards");
+    flash.type = "button";
+    flash.addEventListener("click", () => setMode("flash"));
+    actions.appendChild(flash);
+  }
+  card.appendChild(actions);
+
+  const list = el("ul", "review");
+  QUESTIONS.forEach((q, n) => {
+    const r = results[n];
+    const li = el("li");
+    li.appendChild(el("span", "mark " + (r.correct ? "ok" : "bad"), r.correct ? "✓" : "✗"));
+    const body = el("div");
+    const qp = el("p", "q"); rich(qp, q.q); body.appendChild(qp);
+    const ap = el("p", "a");
+    ap.appendChild(document.createTextNode("Answer: "));
+    rich(ap, q.options[q.answer]);
+    body.appendChild(ap);
+    li.appendChild(body);
+    list.appendChild(li);
+  });
+  card.appendChild(list);
+  stage.appendChild(card);
+}
+
+/* ---------- flashcards ---------- */
+function renderFlash() {
+  const q = QUESTIONS[flashIdx];
+  stage.replaceChildren();
+  counter.textContent = "Card " + (flashIdx + 1) + " of " + QUESTIONS.length;
+  updateTop(flashIdx + 1, QUESTIONS.length, "");
+
+  const card = el("button", "flash" + (flipped ? " back" : ""));
+  card.type = "button";
+  card.setAttribute("aria-label", flipped ? "Showing the answer. Press to see the question." : "Showing the question. Press to see the answer.");
+  if (!flipped) {
+    card.appendChild(el("p", "side", "Question. Press to reveal the answer."));
+    const big = el("p", "big"); rich(big, q.q); card.appendChild(big);
+  } else {
+    card.appendChild(el("p", "side", "Answer. Press to go back to the question."));
+    const big = el("p", "big"); rich(big, q.options[q.answer]); card.appendChild(big);
+    const more = el("p", "more"); rich(more, q.why); card.appendChild(more);
+  }
+  card.addEventListener("click", () => { flipped = !flipped; renderFlash(); });
+  stage.appendChild(card);
+
+  const actions = el("div", "actions");
+  const prev = el("button", "secondary", "Previous");
+  prev.type = "button"; prev.disabled = flashIdx === 0;
+  prev.addEventListener("click", () => { flashIdx--; flipped = false; renderFlash(); });
+  const next = el("button", "primary", flashIdx === QUESTIONS.length - 1 ? "Back to the first card" : "Next card");
+  next.type = "button";
+  next.addEventListener("click", () => {
+    flashIdx = flashIdx === QUESTIONS.length - 1 ? 0 : flashIdx + 1;
+    flipped = false; renderFlash();
+  });
+  actions.appendChild(prev); actions.appendChild(next);
+  stage.appendChild(actions);
+}
+
+function setMode(m) {
+  mode = m;
+  btnQuiz.setAttribute("aria-pressed", String(m === "quiz"));
+  btnFlash.setAttribute("aria-pressed", String(m === "flash"));
+  if (m === "quiz") startQuiz();
+  else { flashIdx = 0; flipped = false; renderFlash(); }
+}
+
+btnQuiz.addEventListener("click", () => setMode("quiz"));
+btnFlash.addEventListener("click", () => setMode("flash"));
+
+/* ---------- theme ---------- */
+document.getElementById("theme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme
+    ? root.dataset.theme === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+});
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (mode === "quiz" && !answered && idx < QUESTIONS.length && results.length === idx) {
+    const n = "1234".indexOf(e.key);
+    if (n > -1 && n < order[idx].length) choose(n);
+  }
+});
+
+startQuiz();
+</script>
+</body>
+</html>
