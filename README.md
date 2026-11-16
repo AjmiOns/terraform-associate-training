@@ -2,10 +2,13 @@
 
 Study notes, quizzes and hands-on labs while preparing for the HashiCorp Terraform Associate certification, alongside my university IaC course.
 
+**Study tracker:** [Open the tracker](https://ajmions.github.io/terraform-associate-training/) with session timers and the exam readiness checklist.
+
 ## Structure
 
 | Folder | Content |
 |---|---|
+| `index.html` | Study tracker: session timers, progress and exam readiness checklist |
 | `course/` | Chapter notes, written in my own words |
 | `quiz/` | Comprehension questions and flashcards |
 | `labs/` | Self-contained hands-on labs (each has its own `provider.tf` and state) |

@@ -1,0 +1,410 @@
+<title>Terraform 004 Study Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column. Summary strip on top, three week sections of session cards with timers, then the readiness checklist and mock exam log. */
+:root {
+  --bg: #FAF9FF;
+  --surface: #FFFFFF;
+  --ink: #2B2842;
+  --muted: #6A6785;
+  --line: #E6E3F4;
+  --track: #EEEBF9;
+  --lav: #DDD7F8; --lav-ink: #4B3FA0;
+  --mint: #D6F0E2; --mint-ink: #1F6B49;
+  --peach: #FFE4D3; --peach-ink: #9A4A1E;
+  --sky: #D8EBF8; --sky-ink: #1F5E8C;
+  --accent: #7C6FD6;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1B1A2B; --surface: #25233A; --ink: #EEEBFF; --muted: #A9A5C8; --line: #383558; --track: #302E4C;
+    --lav: #3A3466; --lav-ink: #CFC8FF; --mint: #1F4234; --mint-ink: #A8E6C6;
+    --peach: #4A3226; --peach-ink: #FFC9A8; --sky: #25405A; --sky-ink: #B7DDF7; --accent: #9C90F0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1B1A2B; --surface: #25233A; --ink: #EEEBFF; --muted: #A9A5C8; --line: #383558; --track: #302E4C;
+  --lav: #3A3466; --lav-ink: #CFC8FF; --mint: #1F4234; --mint-ink: #A8E6C6;
+  --peach: #4A3226; --peach-ink: #FFC9A8; --sky: #25405A; --sky-ink: #B7DDF7; --accent: #9C90F0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 880px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(26px, 5vw, 34px); line-height: 1.15; }
+h2 { font-size: 22px; }
+.sub { color: var(--muted); margin: 6px 0 0; }
+code { font-family: var(--font-mono); font-size: 0.88em; background: var(--track); padding: 1px 5px; border-radius: 4px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 22px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.stat .lbl { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.stat .val { font-family: var(--font-display); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.stat .val small { font-size: 14px; color: var(--muted); font-weight: 500; }
+.bar { height: 8px; background: var(--track); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+
+.week { margin-top: 36px; }
+.week-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 12px 16px; border-radius: 12px; background: var(--wk-bg); color: var(--wk-ink); }
+.week-head .goal { font-size: 14px; opacity: 0.9; }
+.week-head .count { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600; }
+.w1 { --wk-bg: var(--lav); --wk-ink: var(--lav-ink); }
+.w2 { --wk-bg: var(--mint); --wk-ink: var(--mint-ink); }
+.w3 { --wk-bg: var(--peach); --wk-ink: var(--peach-ink); }
+.sessions { display: grid; gap: 12px; margin-top: 12px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; }
+.card.is-done { opacity: 0.72; }
+.card.is-running { border-color: var(--wk-ink); box-shadow: 0 0 0 2px var(--wk-bg); }
+.day { width: 46px; height: 46px; border-radius: 10px; background: var(--wk-bg); color: var(--wk-ink); display: grid; place-content: center; text-align: center; font-family: var(--font-display); line-height: 1; }
+.day small { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--font-body); }
+.day b { font-size: 18px; }
+.body { min-width: 0; }
+.topics { margin: 0; font-weight: 500; }
+.exercise { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.exercise b { color: var(--ink); font-weight: 600; }
+.timer { grid-column: 1 / -1; margin-top: 10px; padding-top: 12px; border-top: 1px dashed var(--line); display: grid; gap: 10px; }
+.timer-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.clock { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 600; letter-spacing: 0.02em; }
+.clock.over { color: var(--peach-ink); }
+.of { color: var(--muted); font-size: 13px; }
+.phase { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 99px; background: var(--track); color: var(--muted); }
+.phase.on { background: var(--wk-bg); color: var(--wk-ink); }
+.spacer { flex: 1 1 0; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; min-height: 36px; font-size: 14px; font-weight: 500; }
+.btn:hover { background: var(--track); }
+.btn.primary { background: var(--wk-bg); color: var(--wk-ink); border-color: transparent; font-weight: 600; }
+.btn.primary:hover { filter: brightness(0.96); }
+.btn.small { padding: 2px 10px; min-height: 30px; }
+.target { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.target output { font-variant-numeric: tabular-nums; min-width: 58px; text-align: center; color: var(--ink); font-weight: 500; }
+.seg { display: flex; gap: 3px; }
+.seg > div { height: 8px; background: var(--track); border-radius: 99px; overflow: hidden; }
+.seg > div > i { display: block; height: 100%; background: var(--wk-ink); opacity: 0.55; }
+.seg-labels { display: flex; gap: 3px; font-size: 11px; color: var(--muted); }
+.seg-labels span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.donecheck { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
+.donecheck input, .check input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+
+.panel { margin-top: 44px; }
+.panel .lead { color: var(--muted); margin: 6px 0 16px; }
+.checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.check { display: flex; align-items: flex-start; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; }
+.check input { margin-top: 2px; }
+.check.on span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+.banner { margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: var(--track); color: var(--muted); font-weight: 500; }
+.banner.ready { background: var(--mint); color: var(--mint-ink); }
+
+.mock-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mock-form input { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 36px; width: 110px; }
+.mocks { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.mock { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-variant-numeric: tabular-nums; }
+.mock .score { font-family: var(--font-display); font-weight: 700; font-size: 18px; min-width: 54px; }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 99px; }
+.pill.pass { background: var(--mint); color: var(--mint-ink); }
+.pill.low { background: var(--peach); color: var(--peach-ink); }
+.mock .when { color: var(--muted); font-size: 13px; margin-left: auto; }
+.mock-summary { margin-top: 10px; color: var(--muted); font-size: 14px; }
+
+.footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; color: var(--muted); font-size: 13px; }
+@media (max-width: 480px) {
+  .card { grid-template-columns: 1fr; }
+  .day { width: auto; height: auto; padding: 6px 10px; grid-auto-flow: column; gap: 8px; justify-self: start; place-content: center; }
+  .clock { font-size: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar > i, .seg > div > i { transition: width 0.4s ease; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Terraform Associate (004) study tracker</h1>
+    <p class="sub">21 sessions over three weeks. Set a time for each one, run the timer, and tick off the readiness checklist before you book the exam.</p>
+  </header>
+
+  <section class="summary" id="summary" aria-label="Progress summary"></section>
+  <div id="weeks"></div>
+
+  <section class="panel" aria-labelledby="ready-h">
+    <h2 id="ready-h">Exam readiness</h2>
+    <p class="lead">Tick everything before you book the exam date.</p>
+    <ul class="checks" id="checks"></ul>
+    <div class="banner" id="banner"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="mock-h">
+    <h2 id="mock-h">Mock exam scores</h2>
+    <p class="lead">The target is 85% or higher, consistently, under the 60-minute limit.</p>
+    <form class="mock-form" id="mockForm">
+      <label for="mockScore" class="sub" style="margin:0">Score (%)</label>
+      <input id="mockScore" type="number" min="0" max="100" inputmode="numeric" placeholder="e.g. 78" required>
+      <button class="btn primary w1" type="submit">Add score</button>
+    </form>
+    <ul class="mocks" id="mocks"></ul>
+    <p class="mock-summary" id="mockSummary"></p>
+  </section>
+
+  <footer class="footer">
+    <span>Progress is saved in this browser only.</span>
+    <span class="spacer"></span>
+    <button class="btn small" id="resetAll" type="button">Reset all progress</button>
+  </footer>
+</div>
+
+<script>
+const WEEKS = [
+  { n: 1, cls: "w1", title: "Week 1: Terraform foundations", goal: "Write your first configurations", target: "Build and destroy a simple AWS resource" },
+  { n: 2, cls: "w2", title: "Week 2: Intermediate Terraform", goal: "How Terraform manages real infrastructure", target: "Explain the full infrastructure lifecycle" },
+  { n: 3, cls: "w3", title: "Week 3: Advanced topics and exam prep", goal: "Become exam-ready", target: "Pass a timed mock at 85% or higher" }
+];
+const SESSIONS = [
+  [1, 1, "IaC concepts, Terraform architecture, declarative vs imperative", "Install Terraform and run `terraform version`"],
+  [2, 1, "Providers, plugins, version constraints, `.terraform.lock.hcl`, registry", "Configure the AWS provider and pin its version"],
+  [3, 1, "HCL syntax, blocks, arguments, attributes", "Write your first `.tf` file"],
+  [4, 1, "Resources vs data sources", "Create an S3 bucket and an AMI data-source lookup"],
+  [5, 1, "Variables, outputs, locals", "Make your configuration reusable"],
+  [6, 1, "Workflow and CLI, `terraform console`, debugging with `TF_LOG`", "Practice init, fmt, validate, plan, apply, destroy"],
+  [7, 1, "State fundamentals, then Week 1 review with 10-15 practice questions", "Inspect `terraform.tfstate`; start your wrong-answer log"],
+  [8, 2, "Lists, maps, objects, tuples, sets", "Create complex variables"],
+  [9, 2, "Expressions, functions, conditionals, loops, `dynamic` blocks, splat and `for` expressions", "Use `for_each` and `count`"],
+  [10, 2, "Dependencies and lifecycle, `-replace` and `taint`, provisioners and why they are a last resort", "Use `depends_on` and `create_before_destroy`"],
+  [11, 2, "Terraform modules", "Build a reusable EC2 module"],
+  [12, 2, "Module inputs, outputs, sources, versions, `moved` blocks", "Create root and child modules"],
+  [13, 2, "State management, backends, state locking, state commands", "Configure an S3 remote backend with locking"],
+  [14, 2, "Drift, `terraform import` and import blocks, CLI workspaces, then Week 2 review with 10-15 questions", "Import a resource and inspect state; update your wrong-answer log"],
+  [15, 3, "Sensitive variables, secrets handling, Vault concepts", "Secure your configuration"],
+  [16, 3, "Ephemeral values, write-only arguments, custom conditions, validation, checks", "Add validation rules to the project"],
+  [17, 3, "HCP Terraform: `terraform login`, `cloud` block, workspaces, projects, collaboration", "Create a demo workspace"],
+  [18, 3, "HCP Terraform integrations, governance, remote operations", "Explore a remote workflow"],
+  [19, 3, "Full revision of all 8 objectives", "40-50 practice questions; review the wrong-answer log"],
+  [20, 3, "Mock exam and weak-topic revision", "Simulate the 60-minute exam"],
+  [21, 3, "Flex day: catch up on missed sessions or retake weak areas", "Retake a mock; book the exam"]
+].map(([day, week, topics, exercise]) => ({ day, week, topics, exercise }));
+const CHECKS = [
+  "I understand all 8 official exam objectives.",
+  "I can write basic Terraform configurations without copying tutorials.",
+  "I understand providers, resources and data sources.",
+  "I understand state, backends and state locking.",
+  "I can create and use Terraform modules.",
+  "I understand lifecycle rules, dependencies and validation.",
+  "I understand HCP Terraform workspaces and projects.",
+  "I score 85% or higher consistently on timed mock exams.",
+  "My wrong-answer log shows no repeated mistakes in the last two mocks."
+];
+const DEFAULT_TARGET = 120;
+const PHASES = [["Theory", 35], ["Hands-on", 60], ["Exam questions", 25]];
+const KEY = "tf004-tracker-v1";
+
+function defaults() { return { done: {}, elapsed: {}, target: {}, running: null, checks: [], mocks: [] }; }
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) return Object.assign(defaults(), JSON.parse(r)); } catch (e) {}
+  return defaults();
+}
+let state = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const rich = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const targetMin = (d) => state.target[d] || DEFAULT_TARGET;
+function elapsedMs(d) {
+  const base = state.elapsed[d] || 0;
+  return state.running && state.running.day === d ? base + (Date.now() - state.running.start) : base;
+}
+function fmt(ms) {
+  const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+  const p = (n) => String(n).padStart(2, "0");
+  return p(h) + ":" + p(m) + ":" + p(x);
+}
+function fmtMin(m) { return m >= 60 ? Math.floor(m / 60) + "h" + (m % 60 ? " " + (m % 60) + "m" : "") : m + " min"; }
+
+function phaseFill(d) {
+  const frac = elapsedMs(d) / (targetMin(d) * 60000);
+  let start = 0;
+  return PHASES.map(([, min]) => {
+    const len = min / 120;
+    const f = Math.max(0, Math.min(1, (frac - start) / len));
+    start += len;
+    return f;
+  });
+}
+function currentPhase(d) {
+  const frac = elapsedMs(d) / (targetMin(d) * 60000);
+  if (frac >= 1) return "Time is up";
+  let start = 0;
+  for (const [name, min] of PHASES) { start += min / 120; if (frac < start) return name; }
+  return "Time is up";
+}
+
+function cardHTML(s) {
+  const w = WEEKS[s.week - 1], d = s.day;
+  const running = state.running && state.running.day === d;
+  const done = !!state.done[d];
+  const ms = elapsedMs(d), tmin = targetMin(d);
+  const over = ms >= tmin * 60000;
+  const fills = phaseFill(d);
+  const seg = PHASES.map(([, min], i) => `<div style="width:${(min / 120) * 100}%"><i style="width:${fills[i] * 100}%"></i></div>`).join("");
+  const lbl = PHASES.map(([n, min]) => `<span style="width:${(min / 120) * 100}%">${n} ${Math.round(min * tmin / 120)}m</span>`).join("");
+  return `<article class="card ${w.cls}${done ? " is-done" : ""}${running ? " is-running" : ""}" id="card-${d}">
+    <div class="day"><small>Day</small><b>${d}</b></div>
+    <div class="body">
+      <p class="topics">${rich(s.topics)}</p>
+      <p class="exercise"><b>Exercise:</b> ${rich(s.exercise)}</p>
+    </div>
+    <div class="timer">
+      <div class="timer-row">
+        <span class="clock${over ? " over" : ""}" id="clock-${d}">${fmt(ms)}</span>
+        <span class="of">of ${fmtMin(tmin)}</span>
+        <span class="phase${running ? " on" : ""}" id="phase-${d}">${running || ms > 0 ? currentPhase(d) : "Not started"}</span>
+        <span class="spacer"></span>
+        <button class="btn primary" type="button" data-act="${running ? "pause" : "start"}" data-day="${d}">${running ? "Pause" : ms > 0 ? "Resume" : "Start"}</button>
+        <button class="btn" type="button" data-act="reset" data-day="${d}" ${ms === 0 ? "disabled" : ""}>Reset</button>
+      </div>
+      <div>
+        <div class="seg" id="seg-${d}" aria-hidden="true">${seg}</div>
+        <div class="seg-labels" aria-hidden="true">${lbl}</div>
+      </div>
+      <div class="timer-row">
+        <span class="target">Session length
+          <button class="btn small" type="button" data-act="less" data-day="${d}" aria-label="Shorten session by 15 minutes">-15</button>
+          <output>${fmtMin(tmin)}</output>
+          <button class="btn small" type="button" data-act="more" data-day="${d}" aria-label="Lengthen session by 15 minutes">+15</button>
+        </span>
+        <span class="spacer"></span>
+        <label class="donecheck"><input type="checkbox" data-act="done" data-day="${d}" ${done ? "checked" : ""}> Done</label>
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderWeeks() {
+  $("weeks").innerHTML = WEEKS.map((w) => {
+    const list = SESSIONS.filter((s) => s.week === w.n);
+    const dn = list.filter((s) => state.done[s.day]).length;
+    return `<section class="week ${w.cls}" aria-label="${esc(w.title)}">
+      <div class="week-head"><h2>${esc(w.title)}</h2><span class="goal">Target: ${esc(w.target)}</span><span class="count">${dn}/${list.length} done</span></div>
+      <div class="sessions">${list.map(cardHTML).join("")}</div></section>`;
+  }).join("");
+}
+
+function renderSummary() {
+  const done = SESSIONS.filter((s) => state.done[s.day]).length;
+  const logged = SESSIONS.reduce((a, s) => a + elapsedMs(s.day), 0) / 3600000;
+  const planned = SESSIONS.reduce((a, s) => a + targetMin(s.day), 0) / 60;
+  const cks = CHECKS.filter((_, i) => state.checks[i]).length;
+  $("summary").innerHTML = `
+    <div class="stat"><div class="lbl">Sessions done</div><div class="val">${done}<small> / ${SESSIONS.length}</small></div><div class="bar"><i style="width:${(done / SESSIONS.length) * 100}%"></i></div></div>
+    <div class="stat"><div class="lbl">Hours logged</div><div class="val" id="hoursVal">${logged.toFixed(1)}<small> / ${planned.toFixed(0)} h</small></div><div class="bar"><i id="hoursBar" style="width:${Math.min(100, (logged / planned) * 100)}%"></i></div></div>
+    <div class="stat"><div class="lbl">Readiness</div><div class="val">${cks}<small> / ${CHECKS.length}</small></div><div class="bar"><i style="width:${(cks / CHECKS.length) * 100}%"></i></div></div>`;
+}
+
+function renderChecks() {
+  $("checks").innerHTML = CHECKS.map((t, i) => `<li><label class="check${state.checks[i] ? " on" : ""}"><input type="checkbox" data-check="${i}" ${state.checks[i] ? "checked" : ""}><span>${esc(t)}</span></label></li>`).join("");
+  const n = CHECKS.filter((_, i) => state.checks[i]).length;
+  const b = $("banner");
+  const ready = n === CHECKS.length;
+  b.className = "banner" + (ready ? " ready" : "");
+  b.textContent = ready ? "All items ticked. You are ready to book the exam." : `${n} of ${CHECKS.length} ticked. ${CHECKS.length - n} to go before you book.`;
+}
+
+function renderMocks() {
+  const list = state.mocks;
+  $("mocks").innerHTML = list.map((m, i) => `<li class="mock"><span class="score">${m.score}%</span><span class="pill ${m.score >= 85 ? "pass" : "low"}">${m.score >= 85 ? "On target" : "Below 85%"}</span><span class="when">${esc(m.date)}</span><button class="btn small" type="button" data-mock-del="${i}" aria-label="Remove score ${m.score}%">Remove</button></li>`).join("");
+  const s = $("mockSummary");
+  if (!list.length) { s.textContent = "No mock exams logged yet."; return; }
+  const last2 = list.slice(-2);
+  const ok = last2.length === 2 && last2.every((m) => m.score >= 85);
+  const best = Math.max(...list.map((m) => m.score));
+  s.textContent = `Best ${best}%. ` + (ok ? "Your last two mocks are both at 85% or higher." : last2.length < 2 ? "Log at least two mocks to check consistency." : "Aim for two mocks in a row at 85% or higher.");
+}
+
+function renderAll() {
+  renderSummary(); renderWeeks(); renderChecks(); renderMocks();
+  if (!state.running) document.title = "Terraform 004 Study Tracker";
+}
+
+function pauseRunning() {
+  if (state.running) {
+    const d = state.running.day;
+    state.elapsed[d] = (state.elapsed[d] || 0) + (Date.now() - state.running.start);
+    state.running = null;
+  }
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]");
+  if (b && b.tagName === "BUTTON") {
+    const d = +b.dataset.day, a = b.dataset.act;
+    if (a === "start") { pauseRunning(); state.running = { day: d, start: Date.now() }; }
+    else if (a === "pause") pauseRunning();
+    else if (a === "reset") { if (state.running && state.running.day === d) state.running = null; state.elapsed[d] = 0; }
+    else if (a === "less") state.target[d] = Math.max(15, targetMin(d) - 15);
+    else if (a === "more") state.target[d] = Math.min(300, targetMin(d) + 15);
+    save(); renderAll();
+    return;
+  }
+  const del = e.target.closest("[data-mock-del]");
+  if (del) { state.mocks.splice(+del.dataset.mockDel, 1); save(); renderMocks(); }
+});
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.dataset.act === "done") {
+    const d = +t.dataset.day;
+    state.done[d] = t.checked;
+    if (t.checked && state.running && state.running.day === d) pauseRunning();
+    save(); renderAll();
+  } else if (t.dataset.check !== undefined) {
+    state.checks[+t.dataset.check] = t.checked;
+    save(); renderSummary(); renderChecks();
+  }
+});
+$("mockForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = Math.round(Number($("mockScore").value));
+  if (!(v >= 0 && v <= 100)) return;
+  state.mocks.push({ score: v, date: new Date().toLocaleDateString(undefined, { day: "numeric", month: "short" }) });
+  $("mockScore").value = "";
+  save(); renderMocks();
+});
+let resetArmed = false, resetTimer = null;
+$("resetAll").addEventListener("click", (e) => {
+  if (!resetArmed) {
+    resetArmed = true; e.target.textContent = "Click again to erase everything";
+    resetTimer = setTimeout(() => { resetArmed = false; e.target.textContent = "Reset all progress"; }, 4000);
+  } else {
+    clearTimeout(resetTimer); resetArmed = false; e.target.textContent = "Reset all progress";
+    state = defaults(); save(); renderAll();
+  }
+});
+
+setInterval(() => {
+  if (!state.running) return;
+  const d = state.running.day, ms = elapsedMs(d), tmin = targetMin(d);
+  const c = $("clock-" + d);
+  if (c) {
+    c.textContent = fmt(ms);
+    c.classList.toggle("over", ms >= tmin * 60000);
+    $("phase-" + d).textContent = currentPhase(d);
+    const fills = phaseFill(d);
+    $("seg-" + d).querySelectorAll("i").forEach((el, i) => { el.style.width = fills[i] * 100 + "%"; });
+  }
+  const logged = SESSIONS.reduce((a, s) => a + elapsedMs(s.day), 0) / 3600000;
+  const planned = SESSIONS.reduce((a, s) => a + targetMin(s.day), 0) / 60;
+  $("hoursVal").innerHTML = `${logged.toFixed(1)}<small> / ${planned.toFixed(0)} h</small>`;
+  $("hoursBar").style.width = Math.min(100, (logged / planned) * 100) + "%";
+  document.title = (ms >= tmin * 60000 ? "Time is up" : fmt(ms)) + " - Day " + d;
+}, 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) renderAll(); });
+
+renderAll();
+</script>
