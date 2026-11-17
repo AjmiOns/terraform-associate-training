@@ -1,0 +1,38 @@
+/* Chapter 01. Edit freely: `answer` is the index (or array of indexes) of the correct option(s). */
+window.QUIZ = {
+  id: "introduction",
+  chapter: "Chapter 01",
+  title: "Intro to IaC and first deployment",
+  questions: [
+    { q: "Which statement best describes Terraform's declarative approach?",
+      options: ["You list every step needed to reach the result", "You describe the desired end state and Terraform works out the steps", "You write shell scripts that Terraform runs in order", "You click through a cloud console and Terraform records it"],
+      answer: 1, explain: "Declarative means you state what should exist. Terraform compares that with the state and builds a plan to get there." },
+    { q: "What does `terraform init` do?",
+      options: ["Creates the cloud resources", "Downloads providers and modules and prepares the backend", "Formats the configuration files", "Deletes the state file"],
+      answer: 1, explain: "Init prepares the working directory. It is the first command to run in a new or cloned configuration." },
+    { q: "Which file records the exact provider versions Terraform selected?",
+      options: ["`terraform.tfstate`", "`.terraform.lock.hcl`", "`variables.tf`", "`provider.tfvars`"],
+      answer: 1, explain: "The dependency lock file pins provider versions and checksums. Commit it to version control." },
+    { q: "What is a provider?",
+      options: ["A cloud account with billing enabled", "A plugin that lets Terraform manage resources through a service's API", "A module stored in the registry", "A type of backend"],
+      answer: 1, explain: "Providers (AWS, Azure, Google, Kubernetes, and so on) translate resource blocks into API calls." },
+    { q: "Which are real benefits of infrastructure as code?",
+      options: ["Changes can be reviewed and tracked in version control", "Environments can be recreated consistently", "No credentials are ever needed", "Every change is guaranteed to cause zero downtime"],
+      answer: [0, 1], explain: "IaC gives repeatability and an audit trail. It does not remove the need for credentials or guarantee zero downtime." },
+    { q: "What is the main job of the state file?",
+      options: ["Store provider source code", "Map configuration to the real objects Terraform manages", "Hold the list of CLI commands run", "Cache module downloads"],
+      answer: 1, explain: "State links each resource block to a real object and records its attributes, so Terraform can compute diffs." },
+    { q: "Which command shows what would change without changing anything?",
+      options: ["`terraform apply`", "`terraform plan`", "`terraform validate`", "`terraform refresh -destroy`"],
+      answer: 1, explain: "Plan reads the configuration, state and real infrastructure, then shows the proposed actions." },
+    { q: "Why should `terraform.tfstate` never be committed to Git?",
+      options: ["It is too large for Git", "It can contain sensitive values in plain text", "Git cannot store JSON", "Terraform regenerates it on every init"],
+      answer: 1, explain: "State can include passwords, keys and other secrets. Use a remote backend with access control and encryption." },
+    { q: "What does the version constraint `~> 5.0` allow?",
+      options: ["Only exactly 5.0", "Any 5.x version, but not 6.0", "Any version of 5 or higher, including 6.x", "Only versions below 5.0"],
+      answer: 1, explain: "The pessimistic operator allows the rightmost version component to increase: `~> 5.0` means `>= 5.0, < 6.0`." },
+    { q: "What is the difference between a resource and a data source?",
+      options: ["A resource is managed by Terraform; a data source only reads existing information", "A data source creates objects; a resource only reads them", "They are the same thing with different names", "Data sources are only for local files"],
+      answer: 0, explain: "Use `resource` to create, update and destroy. Use `data` to look up something that already exists, such as an AMI." }
+  ]
+};
