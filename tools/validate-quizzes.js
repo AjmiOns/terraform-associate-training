@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Checks every quiz for data mistakes. Run: node tools/validate-quizzes.js */
 const fs = require("fs"), path = require("path"), vm = require("vm");
-const root = path.join(__dirname, "..", "website");
+const repo = path.join(__dirname, "..");
+const root = path.join(repo, "website");
 const MIN_QUESTIONS = 20;
 const errors = [];
 const fail = (m) => errors.push(m);
@@ -38,5 +39,19 @@ for (const entry of registry) {
   });
   console.log(`${entry.id}: ${qs.length} questions`);
 }
+
+/* Library: every chapter file must exist in the repo (they are copied into the site at build time). */
+const lib = load(path.join(root, "assets/js/library.js"), "({ CHAPTERS, EXTRAS })");
+const known = new Set(registry.map((q) => q.id));
+const listed = [];
+for (const c of lib.CHAPTERS) {
+  for (const k of ["notes", "answers", "sheet"]) if (c[k]) listed.push([`chapter ${c.n} ${k}`, c[k].file]);
+  if (c.quiz && !known.has(c.quiz)) fail(`chapter ${c.n}: quiz "${c.quiz}" is not in quizzes.js`);
+  if (c.lab && !fs.existsSync(path.join(repo, c.lab))) fail(`chapter ${c.n}: lab folder ${c.lab} not found`);
+}
+for (const x of lib.EXTRAS) listed.push([x.title, x.file]);
+for (const [what, file] of listed) if (!fs.existsSync(path.join(repo, file))) fail(`library: ${what} points to missing file ${file}`);
+console.log(`library: ${listed.length} files checked`);
+
 if (errors.length) { console.error("\n" + errors.map((e) => "  - " + e).join("\n")); process.exit(1); }
 console.log("All quizzes valid.");

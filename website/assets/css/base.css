@@ -17,6 +17,10 @@
   --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --topbar: 52px;
+  --dot: color-mix(in oklab, var(--ink) 14%, transparent);
+  --glow1: color-mix(in oklab, var(--accent) 17%, transparent);
+  --glow2: color-mix(in oklab, oklch(.72 .12 calc(var(--h) + 150)) 12%, transparent);
+  --topbar-bg: color-mix(in oklab, var(--surface) 82%, transparent);
   color-scheme: light;
 }
 :root[data-mode="dark"] {
@@ -31,6 +35,9 @@
   --chg: oklch(.84 .12 82); --chg-bg: oklch(.32 .05 80);
   --del: oklch(.8 .13 25); --del-bg: oklch(.31 .05 25);
   --term-bg: oklch(.15 .012 var(--h)); --term-line: oklch(.27 .014 var(--h));
+  --dot: color-mix(in oklab, var(--ink) 11%, transparent);
+  --glow1: color-mix(in oklab, var(--accent) 20%, transparent);
+  --glow2: color-mix(in oklab, oklch(.6 .12 calc(var(--h) + 150)) 16%, transparent);
   color-scheme: dark;
 }
 
@@ -71,7 +78,7 @@ button { cursor: pointer; }
 @media (prefers-reduced-motion: no-preference) { .btn, .sw, .segctl button { transition: background .15s, filter .15s; } .bar > i { transition: width .4s ease; } }
 
 /* App shell */
-.topbar { position: sticky; top: 0; z-index: 30; height: var(--topbar); display: flex; align-items: center; gap: 12px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.topbar { position: sticky; top: 0; z-index: 30; height: var(--topbar); display: flex; align-items: center; gap: 12px; padding: 0 20px; background: var(--topbar-bg); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); border-bottom: 1px solid var(--line); }
 .topbar .btn { min-height: 34px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; white-space: nowrap; }
 .logo { display: grid; place-content: center; width: 26px; height: 26px; border-radius: var(--r-md); background: var(--accent); color: var(--on-accent); font: 600 12px var(--font-mono); }
@@ -119,3 +126,21 @@ button { cursor: pointer; }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .sw { width: 28px; height: 28px; padding: 0; border: 2px solid var(--surface); border-radius: 50%; background: oklch(.6 .17 var(--sw)); box-shadow: 0 0 0 1px var(--line); }
 .sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
+
+/* Backdrop: a faint dot grid and two soft glows that follow the accent hue. Fixed, decorative, fades out downward. */
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    radial-gradient(52rem 26rem at 88% -6%, var(--glow1), transparent 70%),
+    radial-gradient(40rem 22rem at 8% -4%, var(--glow2), transparent 70%),
+    radial-gradient(circle, var(--dot) 1px, transparent 1.3px);
+  background-size: auto, auto, 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 78%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 78%); }
+::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
+html { scrollbar-color: color-mix(in oklab, var(--muted) 45%, transparent) transparent; }
+.sidebar { scrollbar-width: thin; }
+.sidebar { background: color-mix(in oklab, var(--surface) 94%, var(--bg)); }
+.content > .page-head, .hero-text { position: relative; }
+h1 { background: linear-gradient(180deg, var(--ink), color-mix(in oklab, var(--ink) 78%, var(--accent))); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+@media (forced-colors: active) { h1 { -webkit-text-fill-color: currentColor; background: none; } body::before { display: none; } }
+@media print { body::before { display: none; } .sidebar, .topbar { display: none; } .app { display: block; } }

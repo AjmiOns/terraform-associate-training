@@ -1,4 +1,4 @@
-# Publishes the website/ folder to GitHub Pages.
+# Publishes website/ plus the PDFs in course/ and cheatsheets/ to GitHub Pages (assembled by tools/build-site.js).
 # One-time setup: repository Settings > Pages > Build and deployment > Source: GitHub Actions.
 name: Deploy site
 on:
@@ -21,9 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: node tools/validate-quizzes.js
+      - run: node tools/build-site.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: website
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -1,6 +1,8 @@
 /* Quiz library */
-.qtable { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--line); }
-.qrow { display: grid; grid-template-columns: 44px minmax(0, 1fr) 150px auto; gap: 8px 22px; align-items: center; padding: 22px 0; border-top: 1px solid var(--line); }
+.qtable { margin: 0; padding: 0; list-style: none; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 18px 40px -28px color-mix(in oklab, var(--accent) 55%, transparent); }
+.qrow { display: grid; grid-template-columns: 44px minmax(0, 1fr) 150px auto; gap: 8px 22px; align-items: center; padding: 22px 24px; border-top: 1px solid var(--line); }
+.qrow:first-child { border-top: 0; }
+.qrow:hover { background: color-mix(in oklab, var(--accent) 4%, var(--surface)); }
 .qno { font: 600 18px var(--font-mono); color: var(--accent); }
 .qinfo h2 { font-size: 18px; }
 .qinfo p { margin-top: 4px; color: var(--muted); font-size: 14px; max-width: 62ch; }
@@ -24,7 +26,7 @@
 .qbar { height: 4px; margin: 14px 0 6px; background: var(--track); border-radius: 2px; overflow: hidden; }
 .qbar > i { display: block; height: 100%; background: var(--accent); }
 .qmeta { display: flex; justify-content: space-between; font: 13px var(--font-mono); color: var(--muted); }
-.qcard { margin-top: 14px; padding: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.qcard { margin-top: 14px; padding: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 18px 40px -30px color-mix(in oklab, var(--accent) 55%, transparent); }
 .qtext { margin: 0 0 6px; font-size: clamp(18px, 2.6vw, 21px); line-height: 1.4; letter-spacing: -0.01em; }
 .qhint { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
 .opts { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }

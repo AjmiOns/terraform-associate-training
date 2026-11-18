@@ -1,4 +1,4 @@
-/* Shared top bar + sidebar. Pages set <body data-root="../" data-page="dashboard|quizzes|quiz" data-quiz="<id>"> */
+/* Shared top bar + sidebar. Pages set <body data-root="../" data-page="dashboard|courses|cheatsheets|quizzes|quiz" data-quiz="<id>"> */
 (function () {
   const b = document.body, root = b.dataset.root || "", page = b.dataset.page || "", cur = b.dataset.quiz || "";
   const dash = page === "dashboard", here = page === "quiz" ? "quiz:" + cur : page;
@@ -18,6 +18,7 @@
     document.getElementById("sidebar").innerHTML =
       `<nav class="nav" aria-label="Study"><div class="nav-title">Study</div>
          ${link(root + "index.html", "dashboard", "Dashboard", { attrs: "data-home" })}${spy("plan", "Study plan")}${spy("readiness-sec", "Exam readiness")}${spy("mock-sec", "Mock exams")}</nav>
+       <nav class="nav" aria-label="Library"><div class="nav-title">Library</div>${link(root + "courses.html", "courses", "Course notes")}${link(root + "cheatsheets.html", "cheatsheets", "Cheatsheets")}</nav>
        <nav class="nav" aria-label="Quizzes"><div class="nav-title">Quizzes</div>${link(root + "quiz/index.html", "quizzes", "All quizzes")}${quizzes}</nav>
        <div class="side-prog"><span><b>${done}</b> of ${total} sessions done</span><div class="bar"><i style="width:${(done / total) * 100}%"></i></div></div>`;
   }
