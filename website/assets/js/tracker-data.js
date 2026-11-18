@@ -38,8 +38,3 @@ const CHECKS = [
   "I score 85% or higher consistently on timed mock exams.",
   "My wrong-answer log shows no repeated mistakes in the last two mocks."
 ];
-/* Add a quiz here after creating quiz/<id>-quiz.html and quiz/data/<id>.js */
-const QUIZZES = [
-  { id: "introduction", chapter: "01", title: "Intro to IaC and first deployment", href: "quiz/introduction-quiz.html" },
-  { id: "workflow", chapter: "02", title: "Terraform workflow and resource management", href: "quiz/workflow-quiz.html" }
-];

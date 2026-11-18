@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz library | Terraform 004</title>
+<meta name="description" content="Practice quizzes for the Terraform Associate 004 exam.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script src="../assets/js/theme.js"></script>
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/quiz.css"></head>
+<body data-root="../" data-page="quizzes">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Site navigation"></aside>
+  <main class="content" id="main">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Dashboard</a><span aria-hidden="true">/</span><span>Quizzes</span></nav>
+    <div class="page-head">
+      <h1>Quiz library</h1>
+      <p class="sub" id="libSub">Test yourself, or study the same questions as flashcards.</p>
+    </div>
+    <ul class="qtable" id="quizList"></ul>
+    <p class="note">These are original practice questions written to match the exam objectives. For official examples, see the <a href="https://developer.hashicorp.com/terraform/tutorials/certification/associate-questions" rel="noopener">HashiCorp sample questions</a>.</p>
+  </main>
+</div>
+<div class="scrim" id="scrim"></div>
+<script src="../assets/js/quizzes.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script>
+function draw() {
+  document.getElementById("quizList").innerHTML = quizRows("../");
+  const res = quizResultsAll(), taken = QUIZZES.filter((q) => res[q.id]);
+  document.getElementById("libSub").textContent = taken.length
+    ? taken.length + " of " + QUIZZES.length + " quizzes taken. Aim for 85% or higher on each."
+    : "Test yourself, or study the same questions as flashcards.";
+}
+draw(); loadQuizMeta("../", draw);
+</script>
+</body>
+</html>

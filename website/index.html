@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terraform 004 Study Tracker</title>
+<meta name="description" content="Study plan, session timers, quizzes and readiness checklist for the HashiCorp Terraform Associate (004) exam.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/tracker.css"></head>
+<body data-root="" data-page="dashboard">
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Site navigation"></aside>
+  <main class="content" id="main">
+    <section class="hero" aria-labelledby="top-h">
+      <div class="hero-text">
+        <h1 id="top-h">Terraform Associate 004 study tracker</h1>
+        <p class="sub">21 sessions over three weeks. Work through the plan, time each session, and tick off the readiness checklist before you book the exam.</p>
+      </div>
+      <div class="hero-grid">
+        <div class="term" id="next" aria-label="Next sessions"></div>
+        <ul class="figs" id="summary" aria-label="Progress summary"></ul>
+      </div>
+    </section>
+
+    <section class="block" id="plan" aria-labelledby="plan-h">
+      <div class="sec-head"><h2 id="plan-h">Study plan</h2><span class="hint">Select a week to expand it.</span></div>
+      <div id="weeks"></div>
+    </section>
+
+    <div class="duo">
+      <section class="panel" id="readiness-sec" aria-labelledby="ready-h">
+        <h2 id="ready-h">Exam readiness</h2>
+        <p class="lead">Tick everything before you book the exam date.</p>
+        <ul class="checks" id="checks"></ul>
+        <div class="banner" id="banner" role="status"></div>
+      </section>
+      <section class="panel" id="mock-sec" aria-labelledby="mock-h">
+        <h2 id="mock-h">Mock exam scores</h2>
+        <p class="lead">The target is 85% or higher, consistently, under the 60-minute limit.</p>
+        <form class="mock-form" id="mockForm">
+          <label for="mockScore">Score (%)</label>
+          <input id="mockScore" type="number" min="0" max="100" inputmode="numeric" placeholder="e.g. 78" required>
+          <button class="btn primary" type="submit">Add score</button>
+        </form>
+        <ul class="mocks" id="mocks"></ul>
+        <p class="mock-summary" id="mockSummary"></p>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <span>Progress is saved in this browser only. Export a backup before clearing site data.</span>
+      <span class="spacer"></span>
+      <button class="btn small" id="exportBtn" type="button">Export backup</button>
+      <label class="btn small" for="importFile">Import backup</label>
+      <input id="importFile" type="file" accept="application/json" hidden>
+      <button class="btn small" id="resetAll" type="button">Reset all progress</button>
+      <p class="msg" id="backupMsg" role="status"></p>
+    </footer>
+    <noscript><p class="banner">This tracker needs JavaScript to run.</p></noscript>
+  </main>
+</div>
+<div class="scrim" id="scrim"></div>
+<script src="assets/js/quizzes.js"></script>
+<script src="assets/js/tracker-data.js"></script>
+<script src="assets/js/tracker.js"></script>
+<script src="assets/js/shell.js"></script>
+</body>
+</html>

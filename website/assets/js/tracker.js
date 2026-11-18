@@ -1,5 +1,5 @@
 const DEFAULT_TARGET = 120;
-const PHASES = [["Theory", 35], ["Hands-on", 60], ["Exam questions", 25]];
+const PHASES = [["Theory", 35], ["Hands-on", 60], ["Questions", 25]];
 const KEY = "tf004-tracker-v1";
 
 function defaults() { return { done: {}, elapsed: {}, target: {}, running: null, checks: [], mocks: [] }; }
@@ -96,13 +96,18 @@ function cardHTML(s) {
   </article>`;
 }
 
+const openWeeks = new Set([1]); // only Week 1 is expanded on first load
 function renderWeeks() {
   $("weeks").innerHTML = WEEKS.map((w) => {
     const list = SESSIONS.filter((s) => s.week === w.n);
     const dn = list.filter((s) => state.done[s.day]).length;
-    return `<section class="week ${w.cls}" aria-label="${esc(w.title)}">
-      <div class="week-head"><h2>${esc(w.title)}</h2><span class="goal">Target: ${esc(w.target)}</span><span class="count">${dn}/${list.length} done</span></div>
-      <div class="sessions">${list.map(cardHTML).join("")}</div></section>`;
+    const open = openWeeks.has(w.n);
+    return `<section class="week ${w.cls}">
+      <h2 class="week-title"><button class="week-head" type="button" data-week="${w.n}" aria-expanded="${open}" aria-controls="wk-${w.n}">
+        <span class="ttl">${esc(w.title)}</span><span class="goal">Target: ${esc(w.target)}</span><span class="count">${dn}/${list.length} done</span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button></h2>
+      <div class="sessions" id="wk-${w.n}" ${open ? "" : "hidden"}>${open ? list.map(cardHTML).join("") : ""}</div></section>`;
   }).join("");
 }
 
@@ -111,10 +116,13 @@ function renderSummary() {
   const logged = SESSIONS.reduce((a, s) => a + elapsedMs(s.day), 0) / 3600000;
   const planned = SESSIONS.reduce((a, s) => a + targetMin(s.day), 0) / 60;
   const cks = CHECKS.filter((_, i) => state.checks[i]).length;
-  $("summary").innerHTML = `
-    <div class="stat"><div class="lbl">Sessions done</div><div class="val">${done}<small> / ${SESSIONS.length}</small></div><div class="bar"><i style="width:${(done / SESSIONS.length) * 100}%"></i></div></div>
-    <div class="stat"><div class="lbl">Hours logged</div><div class="val" id="hoursVal">${logged.toFixed(1)}<small> / ${planned.toFixed(0)} h</small></div><div class="bar"><i id="hoursBar" style="width:${Math.min(100, (logged / planned) * 100)}%"></i></div></div>
-    <div class="stat"><div class="lbl">Readiness</div><div class="val">${cks}<small> / ${CHECKS.length}</small></div><div class="bar"><i style="width:${(cks / CHECKS.length) * 100}%"></i></div></div>`;
+  const best = state.mocks.length ? Math.max(...state.mocks.map((m) => m.score)) : null;
+  const fig = (lbl, val, pct, id) => `<li class="fig"><span class="lbl">${lbl}</span><span class="val"${id ? ` id="${id}Val"` : ""}>${val}</span><span class="bar"><i${id ? ` id="${id}Bar"` : ""} style="width:${pct}%"></i></span></li>`;
+  $("summary").innerHTML =
+    fig("Sessions done", `${done}<small> / ${SESSIONS.length}</small>`, (done / SESSIONS.length) * 100) +
+    fig("Hours logged", `${logged.toFixed(1)}<small> / ${planned.toFixed(0)} h</small>`, Math.min(100, (logged / planned) * 100), "hours") +
+    fig("Readiness", `${cks}<small> / ${CHECKS.length}</small>`, (cks / CHECKS.length) * 100) +
+    fig("Best mock score", best === null ? `<small>none yet</small>` : `${best}<small>%</small>`, best || 0);
 }
 
 function renderChecks() {
@@ -138,22 +146,26 @@ function renderMocks() {
 }
 
 function renderNext() {
-  const n = SESSIONS.find((x) => !state.done[x.day]);
+  const pending = SESSIONS.filter((x) => !state.done[x.day]);
+  const applied = SESSIONS.length - pending.length;
   const el = $("next");
-  if (!n) { el.innerHTML = `<div><h2>All ${SESSIONS.length} sessions done</h2><p class="sub">Finish the readiness checklist, then book the exam.</p></div><a class="btn primary" href="#ready-h">Go to checklist</a>`; return; }
-  const running = state.running && state.running.day === n.day;
-  el.innerHTML = `<div><p class="sub">Next up</p><h2>Day ${n.day}</h2><p class="topics">${rich(n.topics)}</p></div><a class="btn primary" href="#card-${n.day}">${running ? "Open running timer" : "Go to session"}</a>`;
-}
-function renderQuizzes() {
-  const res = quizResults();
-  $("quizList").innerHTML = QUIZZES.map((q) => {
-    const r = res[q.id];
-    const badge = r ? `<span class="pill ${r.best >= 85 ? "pass" : "low"}">Best ${r.best}%</span>` : `<span class="pill">Not taken</span>`;
-    return `<li><a class="qlink" href="${esc(q.href)}"><span class="qnum">${esc(q.chapter)}</span><span class="qtitle">${esc(q.title)}</span>${badge}</a></li>`;
+  if (!pending.length) {
+    el.innerHTML = `<p class="cmd"><span class="ps">$</span> terraform apply</p><p class="okline">Apply complete! ${SESSIONS.length} sessions applied.</p><p class="dim">Finish the readiness checklist, then book the exam.</p><a class="btn primary" href="#readiness-sec">Go to checklist</a>`;
+    return;
+  }
+  const lines = pending.slice(0, 5).map((s) => {
+    const started = elapsedMs(s.day) > 0 || (state.running && state.running.day === s.day);
+    return `<li><a href="#card-${s.day}" data-goto-week="${s.week}"><span class="mk ${started ? "chg" : "add"}" aria-hidden="true">${started ? "~" : "+"}</span><span class="dn"><span class="sr">${started ? "In progress: " : "To do: "}</span>day ${s.day}</span><span class="tp">${rich(s.topics)}</span></a></li>`;
   }).join("");
+  const more = pending.length - 5, first = pending[0];
+  const running = state.running && state.running.day === first.day, started = elapsedMs(first.day) > 0;
+  el.innerHTML = `<p class="cmd"><span class="ps">$</span> terraform plan</p><ul class="diff">${lines}</ul>${more > 0 ? `<p class="dim">... and ${more} more</p>` : ""}
+    <p class="plansum">Plan: ${pending.length} to apply, ${applied} applied, 0 to destroy.</p>
+    <a class="btn primary" href="#card-${first.day}" data-goto-week="${first.week}">${running ? "Open running timer" : started ? "Resume day " + first.day : "Start day " + first.day}</a>`;
 }
 function renderAll() {
-  renderSummary(); renderNext(); renderWeeks(); renderChecks(); renderMocks(); renderQuizzes();
+  renderSummary(); renderNext(); renderWeeks(); renderChecks(); renderMocks();
+  if (window.refreshShell) window.refreshShell();
   if (!state.running) document.title = "Terraform 004 Study Tracker";
 }
 
@@ -166,6 +178,14 @@ function pauseRunning() {
 }
 
 document.addEventListener("click", (e) => {
+  const wk = e.target.closest("[data-week]");
+  if (wk) { const n = +wk.dataset.week; openWeeks.has(n) ? openWeeks.delete(n) : openWeeks.add(n); renderWeeks(); const nb = document.querySelector(`[data-week="${n}"]`); if (nb) nb.focus(); return; }
+  const go = e.target.closest("[data-goto-week]");
+  if (go) {
+    e.preventDefault(); openWeeks.add(+go.dataset.gotoWeek); renderWeeks();
+    const card = document.querySelector(go.getAttribute("href")); if (card) card.scrollIntoView({ block: "center" });
+    return;
+  }
   const b = e.target.closest("[data-act]");
   if (b && b.tagName === "BUTTON") {
     const d = +b.dataset.day, a = b.dataset.act;

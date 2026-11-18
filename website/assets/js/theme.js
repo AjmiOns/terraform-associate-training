@@ -1,12 +1,12 @@
 /* Theme: mode (auto/light/dark) + accent hue. Load in <head> so there is no flash. */
 (function () {
   var KEY = "tf004-theme", root = document.documentElement;
-  var HUES = [["Violet", 285], ["Blue", 245], ["Teal", 190], ["Green", 150], ["Amber", 70], ["Rose", 10]];
+  var HUES = [["Violet", 295], ["Blue", 250], ["Teal", 195], ["Green", 150], ["Amber", 70], ["Rose", 10]];
   var MODES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
-  var pref = { mode: "auto", hue: 285 };
+  var pref = { mode: "auto", hue: 295 };
   try { Object.assign(pref, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
   if (!MODES.some(function (m) { return m[0] === pref.mode; })) pref.mode = "auto";
-  pref.hue = Number(pref.hue); if (!(pref.hue >= 0 && pref.hue <= 360)) pref.hue = 285;
+  pref.hue = Number(pref.hue); if (!(pref.hue >= 0 && pref.hue <= 360)) pref.hue = 295;
   var mq = matchMedia("(prefers-color-scheme: dark)");
 
   function apply() {
