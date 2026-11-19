@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/quiz.css">
 <link rel="stylesheet" href="assets/css/library.css">
@@ -21,7 +22,7 @@
 <div class="app">
   <aside class="sidebar" id="sidebar" aria-label="Site navigation"></aside>
   <main class="content wide" id="main">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Dashboard</a><span aria-hidden="true">/</span><a id="crumbSec" href="courses.html">Course notes</a><span aria-hidden="true">/</span><span id="crumbTitle">Document</span></nav>
+    <nav aria-label="Breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Dashboard</a></li><li class="breadcrumb-item"><a id="crumbSec" href="courses.html">Course notes</a></li><li class="breadcrumb-item active" aria-current="page"><span id="crumbTitle">Document</span></li></ol></nav>
     <div class="reader-head">
       <div><h1 id="rTitle">Document</h1><p class="sub" id="rMeta"></p></div>
       <div class="qgo" id="rActions"></div>
@@ -30,7 +31,7 @@
     <nav class="pager" id="rPager" aria-label="Previous and next document"></nav>
   </main>
 </div>
-<div class="scrim" id="scrim"></div>
+<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="assets/js/quizzes.js"></script>
 <script src="assets/js/library.js"></script>
 <script>
@@ -48,21 +49,21 @@
     document.getElementById("crumbTitle").textContent = "Not found";
     document.getElementById("rTitle").textContent = "Document not found";
     document.getElementById("rMeta").textContent = "This link does not match a file in the library.";
-    document.getElementById("rActions").innerHTML = `<a class="btn primary" href="courses.html">Course notes</a><a class="btn" href="cheatsheets.html">Cheatsheets</a>`;
+    document.getElementById("rActions").innerHTML = `<a class="btn btn-primary" href="courses.html">Course notes</a><a class="btn btn-outline-secondary" href="cheatsheets.html">Cheatsheets</a>`;
     return;
   }
   document.title = cur.title + " | Terraform 004";
   document.getElementById("crumbTitle").textContent = cur.title;
   document.getElementById("rTitle").textContent = cur.title;
   document.getElementById("rMeta").textContent = `PDF, ${cur.pages} page${cur.pages === 1 ? "" : "s"}`;
-  document.getElementById("rActions").innerHTML = `<a class="btn primary" href="${e(cur.file)}" target="_blank" rel="noopener">Open in new tab</a><a class="btn" href="${e(cur.file)}" download>Download</a>`;
+  document.getElementById("rActions").innerHTML = `<a class="btn btn-primary" href="${e(cur.file)}" target="_blank" rel="noopener">Open in new tab</a><a class="btn btn-outline-secondary" href="${e(cur.file)}" download>Download</a>`;
   document.getElementById("rFrame").innerHTML = `<iframe title="${e(cur.title)}" src="${e(cur.file)}#view=FitH"></iframe>
     <p class="fallback">If the document does not show here (some phones cannot preview PDFs), use <a href="${e(cur.file)}" target="_blank" rel="noopener">Open in new tab</a>.</p>`;
   const same = all.filter((x) => x.kind === sec), j = same.indexOf(cur);
   const prev = same[j - 1], next = same[j + 1];
   document.getElementById("rPager").innerHTML =
-    (prev ? `<a class="btn" href="${LIB.readUrl(prev.file)}">Previous: ${e(prev.title)}</a>` : "<span></span>") +
-    (next ? `<a class="btn" href="${LIB.readUrl(next.file)}">Next: ${e(next.title)}</a>` : "<span></span>");
+    (prev ? `<a class="btn btn-outline-secondary" href="${LIB.readUrl(prev.file)}">Previous: ${e(prev.title)}</a>` : "<span></span>") +
+    (next ? `<a class="btn btn-outline-secondary" href="${LIB.readUrl(next.file)}">Next: ${e(next.title)}</a>` : "<span></span>");
 })();
 </script>
 <script src="assets/js/shell.js"></script>

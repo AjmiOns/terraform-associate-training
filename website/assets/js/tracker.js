@@ -64,7 +64,7 @@ function cardHTML(s) {
   const fills = phaseFill(d);
   const seg = PHASES.map(([, min], i) => `<div style="width:${(min / 120) * 100}%"><i style="width:${fills[i] * 100}%"></i></div>`).join("");
   const lbl = PHASES.map(([n, min]) => `<span style="width:${(min / 120) * 100}%">${n} ${Math.round(min * tmin / 120)}m</span>`).join("");
-  return `<article class="card ${w.cls}${done ? " is-done" : ""}${running ? " is-running" : ""}" id="card-${d}">
+  return `<article class="sess ${w.cls}${done ? " is-done" : ""}${running ? " is-running" : ""}" id="card-${d}">
     <div class="day"><small>Day</small><b>${d}</b></div>
     <div class="body">
       <p class="topics">${rich(s.topics)}</p>
@@ -76,8 +76,8 @@ function cardHTML(s) {
         <span class="of">of ${fmtMin(tmin)}</span>
         <span class="phase${running ? " on" : ""}" id="phase-${d}">${running || ms > 0 ? currentPhase(d) : "Not started"}</span>
         <span class="spacer"></span>
-        <button class="btn primary" type="button" data-act="${running ? "pause" : "start"}" data-day="${d}">${running ? "Pause" : ms > 0 ? "Resume" : "Start"}</button>
-        <button class="btn" type="button" data-act="reset" data-day="${d}" ${ms === 0 ? "disabled" : ""}>Reset</button>
+        <button class="btn btn-primary" type="button" data-act="${running ? "pause" : "start"}" data-day="${d}">${running ? "Pause" : ms > 0 ? "Resume" : "Start"}</button>
+        <button class="btn btn-outline-secondary" type="button" data-act="reset" data-day="${d}" ${ms === 0 ? "disabled" : ""}>Reset</button>
       </div>
       <div>
         <div class="seg" id="seg-${d}" aria-hidden="true">${seg}</div>
@@ -85,12 +85,12 @@ function cardHTML(s) {
       </div>
       <div class="timer-row">
         <span class="target">Session length
-          <button class="btn small" type="button" data-act="less" data-day="${d}" aria-label="Shorten session by 15 minutes">-15</button>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-act="less" data-day="${d}" aria-label="Shorten session by 15 minutes">-15</button>
           <output>${fmtMin(tmin)}</output>
-          <button class="btn small" type="button" data-act="more" data-day="${d}" aria-label="Lengthen session by 15 minutes">+15</button>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-act="more" data-day="${d}" aria-label="Lengthen session by 15 minutes">+15</button>
         </span>
         <span class="spacer"></span>
-        <label class="donecheck"><input type="checkbox" data-act="done" data-day="${d}" ${done ? "checked" : ""}> Done</label>
+        <div class="form-check donecheck"><input class="form-check-input" type="checkbox" id="done-${d}" data-act="done" data-day="${d}" ${done ? "checked" : ""}><label class="form-check-label" for="done-${d}">Done</label></div>
       </div>
     </div>
   </article>`;
@@ -102,14 +102,16 @@ function renderWeeks() {
     const list = SESSIONS.filter((s) => s.week === w.n);
     const dn = list.filter((s) => state.done[s.day]).length;
     const open = openWeeks.has(w.n);
-    return `<section class="week ${w.cls}">
-      <h2 class="week-title"><button class="week-head" type="button" data-week="${w.n}" aria-expanded="${open}" aria-controls="wk-${w.n}">
+    return `<div class="accordion-item week ${w.cls}">
+      <h2 class="accordion-header"><button class="accordion-button${open ? "" : " collapsed"}" type="button" data-bs-toggle="collapse" data-bs-target="#wk-${w.n}" aria-expanded="${open}" aria-controls="wk-${w.n}">
         <span class="ttl">${esc(w.title)}</span><span class="goal">Target: ${esc(w.target)}</span><span class="count">${dn}/${list.length} done</span>
-        <svg class="chev" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button></h2>
-      <div class="sessions" id="wk-${w.n}" ${open ? "" : "hidden"}>${open ? list.map(cardHTML).join("") : ""}</div></section>`;
+      <div id="wk-${w.n}" class="accordion-collapse collapse${open ? " show" : ""}" data-week="${w.n}"><div class="accordion-body"><div class="sessions">${list.map(cardHTML).join("")}</div></div></div></div>`;
   }).join("");
 }
+/* Keep the open/closed set in step with the Bootstrap accordion so re-renders restore it */
+document.addEventListener("shown.bs.collapse", (e) => { if (e.target.dataset.week) openWeeks.add(+e.target.dataset.week); });
+document.addEventListener("hidden.bs.collapse", (e) => { if (e.target.dataset.week) openWeeks.delete(+e.target.dataset.week); });
 
 function renderSummary() {
   const done = SESSIONS.filter((s) => state.done[s.day]).length;
@@ -117,7 +119,7 @@ function renderSummary() {
   const planned = SESSIONS.reduce((a, s) => a + targetMin(s.day), 0) / 60;
   const cks = CHECKS.filter((_, i) => state.checks[i]).length;
   const best = state.mocks.length ? Math.max(...state.mocks.map((m) => m.score)) : null;
-  const fig = (lbl, val, pct, id) => `<li class="fig"><span class="lbl">${lbl}</span><span class="val"${id ? ` id="${id}Val"` : ""}>${val}</span><span class="bar"><i${id ? ` id="${id}Bar"` : ""} style="width:${pct}%"></i></span></li>`;
+  const fig = (lbl, val, pct, id) => `<li class="fig"><span class="lbl">${lbl}</span><span class="val"${id ? ` id="${id}Val"` : ""}>${val}</span><div class="progress" role="progressbar" aria-label="${lbl}" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar"${id ? ` id="${id}Bar"` : ""} style="width:${pct}%"></div></div></li>`;
   $("summary").innerHTML =
     fig("Sessions done", `${done}<small> / ${SESSIONS.length}</small>`, (done / SESSIONS.length) * 100) +
     fig("Hours logged", `${logged.toFixed(1)}<small> / ${planned.toFixed(0)} h</small>`, Math.min(100, (logged / planned) * 100), "hours") +
@@ -126,17 +128,17 @@ function renderSummary() {
 }
 
 function renderChecks() {
-  $("checks").innerHTML = CHECKS.map((t, i) => `<li><label class="check${state.checks[i] ? " on" : ""}"><input type="checkbox" data-check="${i}" ${state.checks[i] ? "checked" : ""}><span>${esc(t)}</span></label></li>`).join("");
+  $("checks").innerHTML = CHECKS.map((t, i) => `<li class="list-group-item${state.checks[i] ? " on" : ""}"><div class="form-check"><input class="form-check-input" type="checkbox" id="chk-${i}" data-check="${i}" ${state.checks[i] ? "checked" : ""}><label class="form-check-label" for="chk-${i}">${esc(t)}</label></div></li>`).join("");
   const n = CHECKS.filter((_, i) => state.checks[i]).length;
   const b = $("banner");
   const ready = n === CHECKS.length;
-  b.className = "banner" + (ready ? " ready" : "");
+  b.className = "alert mt-3 " + (ready ? "alert-success" : "alert-secondary");
   b.textContent = ready ? "All items ticked. You are ready to book the exam." : `${n} of ${CHECKS.length} ticked. ${CHECKS.length - n} to go before you book.`;
 }
 
 function renderMocks() {
   const list = state.mocks;
-  $("mocks").innerHTML = list.map((m, i) => `<li class="mock"><span class="score">${m.score}%</span><span class="pill ${m.score >= 85 ? "pass" : "low"}">${m.score >= 85 ? "On target" : "Below 85%"}</span><span class="when">${esc(m.date)}</span><button class="btn small" type="button" data-mock-del="${i}" aria-label="Remove score ${m.score}%">Remove</button></li>`).join("");
+  $("mocks").innerHTML = list.map((m, i) => `<li class="list-group-item mock d-flex align-items-center gap-3"><span class="score">${m.score}%</span><span class="badge ${m.score >= 85 ? "pass" : "low"}">${m.score >= 85 ? "On target" : "Below 85%"}</span><span class="when">${esc(m.date)}</span><button class="btn btn-sm btn-outline-secondary" type="button" data-mock-del="${i}" aria-label="Remove score ${m.score}%">Remove</button></li>`).join("");
   const s = $("mockSummary");
   if (!list.length) { s.textContent = "No mock exams logged yet."; return; }
   const last2 = list.slice(-2);
@@ -150,7 +152,7 @@ function renderNext() {
   const applied = SESSIONS.length - pending.length;
   const el = $("next");
   if (!pending.length) {
-    el.innerHTML = `<p class="cmd"><span class="ps">$</span> terraform apply</p><p class="okline">Apply complete! ${SESSIONS.length} sessions applied.</p><p class="dim">Finish the readiness checklist, then book the exam.</p><a class="btn primary" href="#readiness-sec">Go to checklist</a>`;
+    el.innerHTML = `<p class="cmd"><span class="ps">$</span> terraform apply</p><p class="okline">Apply complete! ${SESSIONS.length} sessions applied.</p><p class="dim">Finish the readiness checklist, then book the exam.</p><a class="btn btn-primary" href="#readiness-sec">Go to checklist</a>`;
     return;
   }
   const lines = pending.slice(0, 5).map((s) => {
@@ -161,7 +163,7 @@ function renderNext() {
   const running = state.running && state.running.day === first.day, started = elapsedMs(first.day) > 0;
   el.innerHTML = `<p class="cmd"><span class="ps">$</span> terraform plan</p><ul class="diff">${lines}</ul>${more > 0 ? `<p class="dim">... and ${more} more</p>` : ""}
     <p class="plansum">Plan: ${pending.length} to apply, ${applied} applied, 0 to destroy.</p>
-    <a class="btn primary" href="#card-${first.day}" data-goto-week="${first.week}">${running ? "Open running timer" : started ? "Resume day " + first.day : "Start day " + first.day}</a>`;
+    <a class="btn btn-primary" href="#card-${first.day}" data-goto-week="${first.week}">${running ? "Open running timer" : started ? "Resume day " + first.day : "Start day " + first.day}</a>`;
 }
 function renderAll() {
   renderSummary(); renderNext(); renderWeeks(); renderChecks(); renderMocks();
@@ -178,8 +180,6 @@ function pauseRunning() {
 }
 
 document.addEventListener("click", (e) => {
-  const wk = e.target.closest("[data-week]");
-  if (wk) { const n = +wk.dataset.week; openWeeks.has(n) ? openWeeks.delete(n) : openWeeks.add(n); renderWeeks(); const nb = document.querySelector(`[data-week="${n}"]`); if (nb) nb.focus(); return; }
   const go = e.target.closest("[data-goto-week]");
   if (go) {
     e.preventDefault(); openWeeks.add(+go.dataset.gotoWeek); renderWeeks();
@@ -220,15 +220,9 @@ $("mockForm").addEventListener("submit", (e) => {
   $("mockScore").value = "";
   save(); renderMocks();
 });
-let resetArmed = false, resetTimer = null;
-$("resetAll").addEventListener("click", (e) => {
-  if (!resetArmed) {
-    resetArmed = true; e.target.textContent = "Click again to erase everything";
-    resetTimer = setTimeout(() => { resetArmed = false; e.target.textContent = "Reset all progress"; }, 4000);
-  } else {
-    clearTimeout(resetTimer); resetArmed = false; e.target.textContent = "Reset all progress";
-    state = defaults(); save(); renderAll();
-  }
+$("resetConfirm").addEventListener("click", () => {
+  state = defaults(); save(); renderAll();
+  bootstrap.Modal.getOrCreateInstance($("resetModal")).hide();
 });
 
 setInterval(() => {

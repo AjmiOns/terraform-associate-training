@@ -12,12 +12,12 @@ function quizRows(root) {
   const res = quizResultsAll();
   return QUIZZES.map((q) => {
     const r = res[q.id], n = QUIZ_META[q.id], url = root + q.href;
-    return `<li class="qrow"><span class="qno">${quizEsc(q.chapter)}</span>
+    return `<li class="list-group-item qrow"><span class="qno">${quizEsc(q.chapter)}</span>
       <div class="qinfo"><h2>${quizEsc(q.title)}</h2><p>${quizEsc(q.desc)}</p></div>
       <div class="qstat"><span class="qcount">${n ? n + " questions" : ""}</span>
         <span class="qbest ${r ? (r.best >= 85 ? "pass" : "low") : ""}">${r ? "Best " + r.best + "%" : "Not taken"}</span>
-        <span class="mini" aria-hidden="true"><i style="width:${r ? r.best : 0}%"></i></span></div>
-      <div class="qgo"><a class="btn primary" href="${url}?mode=quiz">${r ? "Retake" : "Start quiz"}</a><a class="btn" href="${url}?mode=cards">Flashcards</a></div></li>`;
+        <div class="progress" role="progressbar" aria-label="Best score" aria-valuenow="${r ? r.best : 0}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:${r ? r.best : 0}%"></div></div></div>
+      <div class="qgo"><a class="btn btn-primary" href="${url}?mode=quiz">${r ? "Retake" : "Start quiz"}</a><a class="btn btn-outline-secondary" href="${url}?mode=cards">Flashcards</a></div></li>`;
   }).join("");
 }
 function loadQuizMeta(root, done) {

@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/tracker.css"></head>
 <body data-root="" data-page="dashboard">
@@ -23,35 +24,35 @@
       <div class="hero-text">
         <h1 id="top-h">Terraform Associate 004 study tracker</h1>
         <p class="sub">21 sessions over three weeks. Work through the plan, time each session, and tick off the readiness checklist before you book the exam.</p>
-        <p class="hero-links"><a class="btn" href="courses.html">Course notes</a><a class="btn" href="cheatsheets.html">Cheatsheets</a><a class="btn" href="quiz/index.html">Quizzes</a></p>
+        <p class="d-flex flex-wrap gap-2 mt-3"><a class="btn btn-outline-secondary" href="courses.html">Course notes</a><a class="btn btn-outline-secondary" href="cheatsheets.html">Cheatsheets</a><a class="btn btn-outline-secondary" href="quiz/index.html">Quizzes</a></p>
       </div>
-      <div class="hero-grid">
-        <div class="term" id="next" aria-label="Next sessions"></div>
-        <ul class="figs" id="summary" aria-label="Progress summary"></ul>
+      <div class="row g-3 g-lg-4 mt-1 hero-grid">
+        <div class="col-lg-7"><div class="term h-100" id="next" aria-label="Next sessions"></div></div>
+        <div class="col-lg-5"><ul class="figs h-100" id="summary" aria-label="Progress summary"></ul></div>
       </div>
     </section>
 
     <section class="block" id="plan" aria-labelledby="plan-h">
       <div class="sec-head"><h2 id="plan-h">Study plan</h2><span class="hint">Select a week to expand it.</span></div>
-      <div id="weeks"></div>
+      <div class="accordion" id="weeks"></div>
     </section>
 
     <div class="duo">
       <section class="panel" id="readiness-sec" aria-labelledby="ready-h">
         <h2 id="ready-h">Exam readiness</h2>
-        <p class="lead">Tick everything before you book the exam date.</p>
-        <ul class="checks" id="checks"></ul>
-        <div class="banner" id="banner" role="status"></div>
+        <p class="panel-lead">Tick everything before you book the exam date.</p>
+        <ul class="list-group checks" id="checks"></ul>
+        <div class="alert alert-secondary mt-3" id="banner" role="status"></div>
       </section>
       <section class="panel" id="mock-sec" aria-labelledby="mock-h">
         <h2 id="mock-h">Mock exam scores</h2>
-        <p class="lead">The target is 85% or higher, consistently, under the 60-minute limit.</p>
-        <form class="mock-form" id="mockForm">
-          <label for="mockScore">Score (%)</label>
-          <input id="mockScore" type="number" min="0" max="100" inputmode="numeric" placeholder="e.g. 78" required>
-          <button class="btn primary" type="submit">Add score</button>
+        <p class="panel-lead">The target is 85% or higher, consistently, under the 60-minute limit.</p>
+        <form class="input-group mock-form" id="mockForm">
+          <label class="input-group-text" for="mockScore">Score (%)</label>
+          <input class="form-control" id="mockScore" type="number" min="0" max="100" inputmode="numeric" placeholder="e.g. 78" required>
+          <button class="btn btn-primary" type="submit">Add score</button>
         </form>
-        <ul class="mocks" id="mocks"></ul>
+        <ul class="list-group mocks" id="mocks"></ul>
         <p class="mock-summary" id="mockSummary"></p>
       </section>
     </div>
@@ -59,16 +60,23 @@
     <footer class="footer">
       <span>Progress is saved in this browser only. Export a backup before clearing site data.</span>
       <span class="spacer"></span>
-      <button class="btn small" id="exportBtn" type="button">Export backup</button>
-      <label class="btn small" for="importFile">Import backup</label>
+      <button class="btn btn-sm btn-outline-secondary" id="exportBtn" type="button">Export backup</button>
+      <label class="btn btn-sm btn-outline-secondary" for="importFile">Import backup</label>
       <input id="importFile" type="file" accept="application/json" hidden>
-      <button class="btn small" id="resetAll" type="button">Reset all progress</button>
+      <button class="btn btn-sm btn-outline-danger" id="resetAll" type="button" data-bs-toggle="modal" data-bs-target="#resetModal">Reset all progress</button>
       <p class="msg" id="backupMsg" role="status"></p>
     </footer>
-    <noscript><p class="banner">This tracker needs JavaScript to run.</p></noscript>
+    <noscript><p class="alert alert-secondary mt-3">This tracker needs JavaScript to run.</p></noscript>
   </main>
 </div>
-<div class="scrim" id="scrim"></div>
+<div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title fs-5" id="resetTitle">Reset all progress?</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">This erases session timers, done marks, the readiness checklist and mock scores from this browser. Quiz scores are kept. Export a backup first if you might want them back.</div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-danger" id="resetConfirm">Erase everything</button></div>
+  </div></div>
+</div>
+<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="assets/js/quizzes.js"></script>
 <script src="assets/js/tracker-data.js"></script>
 <script src="assets/js/tracker.js"></script>

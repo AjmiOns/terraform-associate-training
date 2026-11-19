@@ -36,10 +36,10 @@ const LIB = {
   pill: (p) => `<span class="meta">PDF, ${p} page${p === 1 ? "" : "s"}</span>`,
   row(n, title, desc, main, links) {
     const e = LIB.esc;
-    return `<li class="qrow lrow"><span class="qno">${e(n)}</span>
+    return `<li class="list-group-item qrow lrow"><span class="qno">${e(n)}</span>
       <div class="qinfo"><h2>${e(title)}</h2><p>${e(desc)}</p></div>
       <div class="qstat">${LIB.pill(main.pages)}</div>
-      <div class="qgo"><a class="btn primary" href="${LIB.readUrl(main.file)}">Read</a><a class="btn" href="${e(main.file)}" download>Download</a></div>
+      <div class="qgo"><a class="btn btn-primary" href="${LIB.readUrl(main.file)}">Read</a><a class="btn btn-outline-secondary" href="${e(main.file)}" download>Download</a></div>
       ${links ? `<p class="related">${links}</p>` : ""}</li>`;
   },
   coursesHTML() {

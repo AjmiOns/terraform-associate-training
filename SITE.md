@@ -1,6 +1,6 @@
 # Study site: how it works
 
-Plain HTML, CSS and JavaScript. No build step and no dependencies. Everything the browser needs lives in `website/`.
+Built on Bootstrap 5.3.3 (navbar, offcanvas sidebar, accordion, modal, dropdown, list-group, progress, forms), themed through a small bridge layer so the accent color and light/dark mode still drive everything. Bootstrap is vendored in `website/assets/vendor/bootstrap/` (MIT), so there is no CDN, no build step and no npm install. Everything the browser needs lives in `website/`.
 
 ```
 website/
@@ -11,7 +11,8 @@ website/
   quiz/index.html            Quiz library
   quiz/<id>.html             One page per quiz
   data/quizzes/<id>.js       Questions for one quiz
-  assets/css/base.css        Design tokens, light/dark themes, shell, shared components
+  assets/vendor/bootstrap/   Bootstrap 5.3.3 CSS and JS bundle (unmodified)
+  assets/css/base.css        Design tokens, Bootstrap bridge (--bs-* mapped to tokens), shell
   assets/css/tracker.css     Tracker page
   assets/css/quiz.css        Quiz library, quiz engine and shared list rows
   assets/css/library.css     Library pages and reader

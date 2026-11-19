@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <script src="assets/js/theme.js"></script>
+<link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/quiz.css">
 <link rel="stylesheet" href="assets/css/library.css">
@@ -21,15 +22,15 @@
 <div class="app">
   <aside class="sidebar" id="sidebar" aria-label="Site navigation"></aside>
   <main class="content" id="main">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Dashboard</a><span aria-hidden="true">/</span><span>Cheatsheets</span></nav>
+    <nav aria-label="Breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Dashboard</a></li><li class="breadcrumb-item active" aria-current="page"><span>Cheatsheets</span></li></ol></nav>
     <div class="page-head">
       <h1>Cheatsheets</h1>
       <p class="sub">Three-page quick references for each chapter. Good for a last review before a quiz.</p>
     </div>
-    <ul class="qtable" id="list"></ul>
+    <ul class="list-group qtable" id="list"></ul>
   </main>
 </div>
-<div class="scrim" id="scrim"></div>
+<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="assets/js/quizzes.js"></script>
 <script src="assets/js/library.js"></script>
 <script src="assets/js/shell.js"></script>

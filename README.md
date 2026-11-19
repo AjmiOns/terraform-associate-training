@@ -29,7 +29,7 @@ Progress is saved in your browser only. Use **Export backup** on the tracker bef
 | `course/` | Chapter notes (PDF), written in my own words, plus corrected answers |
 | `cheatsheets/` | Three-page quick references, one per chapter |
 | `labs/` | Self-contained hands-on labs (each has its own `provider.tf` and state) |
-| `website/` | The study site: tracker, library and quizzes (plain HTML, CSS and JavaScript, no build step) |
+| `website/` | The study site: tracker, library and quizzes (Bootstrap 5.3 plus plain JavaScript, no build step) |
 | `tools/` | `validate-quizzes.js` (data checks) and `build-site.js` (assembles the site) |
 | `docs/` | Screenshots used in this README |
 | `.github/workflows/` | Quiz validation and GitHub Pages deployment |
